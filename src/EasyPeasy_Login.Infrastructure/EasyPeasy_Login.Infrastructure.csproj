@@ -1,0 +1,15 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <ItemGroup>
+    <ProjectReference Include="..\EasyPeasy_Login.Application\EasyPeasy_Login.Application.csproj" />
+    <ProjectReference Include="..\EasyPeasy_Login.Domain\EasyPeasy_Login.Domain.csproj" />
+    <ProjectReference Include="..\EasyPeasy_Login.Shared\EasyPeasy_Login.Shared.csproj" />
+  </ItemGroup>
+
+  <PropertyGroup>
+    <TargetFramework>net9.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+</Project>

@@ -1,0 +1,47 @@
+## Visual Studio and .NET files
+*.swp
+*.*~
+project.lock.json
+.DS_Store
+*.pyc
+nupkg/
+
+# User-specific files
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+
+# Build results
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+build/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+
+# Visual Studio cache/options directory
+.vs/
+
+# Data files (runtime generated)
+data/*.json
+data/logs/
+
+# Network configuration backups
+config/**/*.backup
+config/**/*.bak
+
+# SSL Certificates
+config/certificates/*.pem
+config/certificates/*.key
+config/certificates/*.crt
+
+# Temporary files
+*.tmp
+*.temp
