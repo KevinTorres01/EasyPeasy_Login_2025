@@ -36,7 +36,7 @@ public class DeviceRepository : Repository<Device>, IDeviceRepository
 
     public Task<Device?> GetByIpAddressAsync(string ipAddress)
     {
-        return Task.FromResult(Items.FirstOrDefault(d => d.IPAdress == ipAddress));
+        return Task.FromResult(Items.FirstOrDefault(d => d.IPAddress == ipAddress));
     }
 
     public Task<Device?> GetByMacAddressAsync(string macAddress)

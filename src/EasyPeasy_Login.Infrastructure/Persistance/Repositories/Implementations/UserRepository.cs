@@ -10,13 +10,11 @@ public class UserRepository : Repository<User>, IUserRepository
         if (!Items.Any())
         {
             var defaultUser = new User
-            {
-                Username = "admin",
+            (
+                "admin",
                 //should be hashed by a proper hashing function that is not implemented yet
-                PasswordHash = "admin123",
-                IsActive = true,
-                CreatedAt = DateTime.UtcNow
-            };
+                "admin123");
+            ;
             Items.Add(defaultUser);
             SaveDataAsync().Wait();
         }
@@ -58,7 +56,7 @@ public class UserRepository : Repository<User>, IUserRepository
         }
     }
 
-    public  async Task DeleteByUsernameAsync(string username)
+    public async Task DeleteByUsernameAsync(string username)
     {
         var user = Items.FirstOrDefault(u => u.Username.Equals(username));
         if (user != null)

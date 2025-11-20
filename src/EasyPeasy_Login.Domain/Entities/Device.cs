@@ -1,6 +1,6 @@
 public class Device
 {
-    public string IPAdress { get; set; }
+    public string IPAddress { get; set; }
     public string MacAddress { get; set; }  
     public string Hostname { get; set; }
     public DateTime FirstSeenAt { get; set; }
