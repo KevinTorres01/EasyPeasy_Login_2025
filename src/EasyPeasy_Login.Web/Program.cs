@@ -1,10 +1,16 @@
 using EasyPeasy_Login.Web.Components;
+//using EasyPeasy_Login.Web.Services;
+//using EasyPeasy_Login.Web.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
 builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
+
+builder.Services.AddControllers();
+
+// Register presentation services
 
 var app = builder.Build();
 
@@ -16,13 +22,20 @@ if (!app.Environment.IsDevelopment())
     app.UseHsts();
 }
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 
-
+app.UseStaticFiles();
 app.UseAntiforgery();
 
+// customized Middleware
+// app.UseRequestRouter();
+
+
+// Endpoints
 app.MapStaticAssets();
 app.MapRazorComponents<App>()
     .AddInteractiveServerRenderMode();
 
-app.Run();
+app.MapControllers(); // for API controllers
+
+app.Run("http://0.0.0.0:8080");

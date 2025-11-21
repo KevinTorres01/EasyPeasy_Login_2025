@@ -1,0 +1,414 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   viewBox="0 0 520 360"
+   aria-hidden="true"
+   version="1.1"
+   id="svg2179"
+   sodipodi:docname="avatars_base.svg"
+   inkscape:version="1.2.2 (b0a8486541, 2022-12-01)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs2183" />
+  <sodipodi:namedview
+     id="namedview2181"
+     pagecolor="#ffffff"
+     bordercolor="#cccccc"
+     borderopacity="1"
+     inkscape:showpageshadow="0"
+     inkscape:pageopacity="1"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     showgrid="false"
+     inkscape:zoom="1.4043926"
+     inkscape:cx="406.22544"
+     inkscape:cy="194.74611"
+     inkscape:window-width="1920"
+     inkscape:window-height="891"
+     inkscape:window-x="0"
+     inkscape:window-y="64"
+     inkscape:window-maximized="1"
+     inkscape:current-layer="svg2179" />
+  <rect
+     x="0"
+     y="0"
+     width="520"
+     height="360"
+     rx="28"
+     fill="#e8e9ed"
+     id="rect2097" />
+  <!-- Character Light Pink -->
+  <g
+     id="g3382"
+     transform="matrix(1.0646298,0,0,1.0646298,-3.5271752,-7.6124358)">
+    <!-- Body -->
+    <path
+       d="m 287.68597,326.75569 v -160 a 67.329095,60 0 0 1 134.65819,0 v 160 z"
+       fill="#f6a8c9"
+       id="path2117"
+       style="stroke-width:1.05932" />
+    <!--Cyclope eye -->
+    <g
+       id="g3366"
+       transform="translate(4.6645401)">
+      <circle
+         cx="350.35052"
+         cy="168.00954"
+         r="30"
+         fill="#ffffff"
+         id="circle2119" />
+      <circle
+         cx="350.35052"
+         cy="154.75569"
+         r="12"
+         fill="#000000"
+         id="circle2121" />
+    </g>
+    <!-- Mouth -->
+    <g
+       id="g3371">
+      <!-- Mouth Background -->
+      <ellipse
+         style="fill:#9d5874;fill-opacity:1"
+         id="path3102"
+         cx="394.302"
+         cy="233.61568"
+         rx="13.345692"
+         ry="17.051718" />
+      <!-- Mouth Teeth -->
+      <rect
+         x="385.38785"
+         y="217.96416"
+         width="8.449502"
+         height="11.912072"
+         rx="4.224751"
+         fill="#ffffff"
+         id="rect2125"
+         style="stroke-width:1.3523" />
+      <rect
+         x="394.87283"
+         y="217.67513"
+         width="8.449502"
+         height="11.912072"
+         rx="4.224751"
+         fill="#ffffff"
+         id="rect3244"
+         style="stroke-width:1.3523" />
+    </g>
+    <!-- Superior lip -->
+    <ellipse
+       style="fill:#f6a8c9;fill-opacity:1;stroke-width:1.40024"
+       id="path3362"
+       cx="393.32635"
+       cy="215.4073"
+       rx="13.578872"
+       ry="7.5488887" />
+  </g>
+  <!-- Character Dark Pink -->
+  <g
+     id="g2685"
+     transform="matrix(1.0646298,0,0,1.0646298,47.609429,-19.208797)">
+    <!-- Left leg -->
+    <path
+       d="m 102.27613,124.20905 20,200"
+       stroke="#e84e7e"
+       stroke-width="24"
+       stroke-linecap="round"
+       id="path2099" />
+    <!-- Right leg -->
+    <path
+       d="m 132.70674,123.08628 c 19.75062,67.35436 39.84025,133.80623 59.18332,202.24554"
+       stroke="#e84e7e"
+       stroke-width="24"
+       stroke-linecap="round"
+       id="path2101"
+       sodipodi:nodetypes="cc" />
+    <!-- Face -->
+    <rect
+       x="23.910538"
+       y="63.605251"
+       width="192.60803"
+       height="61.414959"
+       rx="31.963337"
+       fill="#e84e7e"
+       id="rect2103"
+       style="stroke-width:0.9192" />
+    <!-- Eyes -->
+    <circle
+       cx="98.130707"
+       cy="59.778286"
+       fill="#ffffff"
+       id="circle2105"
+       style="stroke-width:0.8"
+       r="20" />
+    <circle
+       cx="108.13071"
+       cy="59.778286"
+       r="8"
+       fill="#000000"
+       id="circle2107" />
+    <circle
+       cx="142.2984"
+       cy="59.778286"
+       fill="#ffffff"
+       id="circle2109"
+       style="stroke-width:0.799996"
+       r="20" />
+    <circle
+       cx="152.2984"
+       cy="59.778286"
+       r="8"
+       fill="#000000"
+       id="circle2111" />
+    <!-- Mouth -->
+    <rect
+       x="100.42516"
+       y="86.254997"
+       width="39.578777"
+       height="22.523483"
+       rx="11.933199"
+       fill="#e84e7e"
+       id="rect2103-6"
+       style="fill:#9d2b48;fill-opacity:1;stroke-width:0.9192" />
+  </g>
+  <!-- Character Blue -->
+  <g
+     id="g3100"
+     transform="matrix(1.0646298,0,0,1.0646298,35.444467,-8.0077582)">
+    <g
+       id="g3081">
+      <!-- Legs -->
+      <g
+         id="g3069"
+         transform="translate(6.0769958)">
+        <rect
+           x="193.81808"
+           y="227.29317"
+           width="16"
+           height="101.20235"
+           rx="8"
+           fill="#3b95f5"
+           id="rect2161"
+           style="stroke-width:1.29873" />
+        <rect
+           x="223.81808"
+           y="227.29317"
+           width="16"
+           height="101.1306"
+           rx="8"
+           fill="#3b95f5"
+           id="rect2163"
+           style="stroke-width:1.29827" />
+      </g>
+      <!-- Face -->
+      <ellipse
+         cx="222.89508"
+         cy="221.67238"
+         fill="#3b95f5"
+         id="circle2165"
+         rx="52.895084"
+         ry="51.672386"
+         style="stroke-width:1.08917" />
+      <!-- Eyes -->
+      <g
+         id="g3009"
+         transform="translate(4.0769958)">
+        <circle
+           cx="201.81808"
+           cy="207.29317"
+           r="16"
+           fill="#ffffff"
+           id="circle2167" />
+        <circle
+           cx="197.3259"
+           cy="201.57895"
+           r="7"
+           fill="#000000"
+           id="circle2169" />
+        <circle
+           cx="235.81808"
+           cy="207.29317"
+           r="16"
+           fill="#ffffff"
+           id="circle2171" />
+        <circle
+           cx="230.76276"
+           cy="202.17819"
+           r="7"
+           fill="#000000"
+           id="circle2173" />
+      </g>
+      <!-- Mouth -->
+      <ellipse
+         cx="222.89508"
+         cy="239.01947"
+         fill="#1e4f84"
+         id="circle2175"
+         rx="10"
+         ry="7.78826"
+         style="stroke-width:0.882511" />
+    </g>
+  </g>
+  <!-- Cloud Character -->
+  <g
+     id="g3640"
+     transform="matrix(1.0646298,0,0,1.0646298,-20.690737,-16.388903)">
+    <g
+       id="g3617">
+      <!-- Left leg -->
+      <rect
+         x="122.05357"
+         y="232.48087"
+         width="11.825696"
+         height="102.44677"
+         rx="5.912848"
+         fill="#80d8d0"
+         id="rect2131"
+         style="stroke-width:1.04005" />
+      <!-- Right leg -->
+      <rect
+         x="147.39435"
+         y="232.48087"
+         width="11.825696"
+         height="100.29401"
+         rx="5.912848"
+         fill="#80d8d0"
+         id="rect2133"
+         style="stroke-width:1.02906" />
+      <!-- Body -->
+      <g
+         id="g3601">
+        <ellipse
+           style="fill:#80d8d0;fill-opacity:1;stroke-width:1.32798"
+           id="path2920"
+           cx="115.99339"
+           cy="163.7532"
+           rx="20.364809"
+           ry="19.127666" />
+        <ellipse
+           style="fill:#80d8d0;fill-opacity:1;stroke-width:0.917099"
+           id="path2912"
+           cx="142.52177"
+           cy="197.85033"
+           rx="45.54929"
+           ry="45.638149" />
+        <ellipse
+           style="fill:#80d8d0;fill-opacity:1;stroke-width:0.994873"
+           id="path2934"
+           cx="116.27796"
+           cy="228.69908"
+           rx="16.505699"
+           ry="18.288988" />
+        <ellipse
+           style="fill:#80d8d0;fill-opacity:1;stroke-width:1.0984"
+           id="path2914"
+           cx="169.74838"
+           cy="156.09468"
+           rx="20.43363"
+           ry="16.408358" />
+        <ellipse
+           style="fill:#80d8d0;fill-opacity:1;stroke-width:1.33143"
+           id="path2918"
+           cx="142.69867"
+           cy="153.49768"
+           rx="17.821531"
+           ry="17.636358" />
+        <ellipse
+           style="fill:#80d8d0;fill-opacity:1"
+           id="path2922"
+           cx="97.165756"
+           cy="187.5155"
+           rx="15.63154"
+           ry="12.542776" />
+        <ellipse
+           style="fill:#80d8d0;fill-opacity:1"
+           id="path2924"
+           cx="188.26883"
+           cy="179.82002"
+           rx="16.120945"
+           ry="16.68458" />
+        <ellipse
+           style="fill:#80d8d0;fill-opacity:1;stroke-width:1.13898"
+           id="path2928"
+           cx="188.91353"
+           cy="214.07585"
+           rx="17.204527"
+           ry="22.044638" />
+        <ellipse
+           style="fill:#80d8d0;fill-opacity:1"
+           id="path2930"
+           cx="169.03401"
+           cy="236.33124"
+           rx="15.812964"
+           ry="17.526491" />
+        <ellipse
+           style="fill:#80d8d0;fill-opacity:1;stroke-width:1.21242"
+           id="path2932"
+           cx="102.81811"
+           cy="207.98312"
+           rx="15.461748"
+           ry="16.934301" />
+        <ellipse
+           style="fill:#80d8d0;fill-opacity:1"
+           id="path2936"
+           cx="140.21169"
+           cy="241.29031"
+           rx="17.891291"
+           ry="15.915248" />
+      </g>
+    </g>
+    <!-- Eyes -->
+    <g
+       id="g2974"
+       transform="translate(56.498256,-2.656385)">
+      <circle
+         cx="73.545761"
+         cy="183.32991"
+         fill="#ffffff"
+         id="circle2149"
+         style="stroke-width:0.892857"
+         r="12.5" />
+      <circle
+         cx="101.10999"
+         cy="183.32991"
+         fill="#ffffff"
+         id="circle2153"
+         style="stroke-width:0.892857"
+         r="12.5" />
+      <circle
+         cx="76.055138"
+         cy="186.86017"
+         fill="#000000"
+         id="circle2151"
+         style="stroke-width:1.25"
+         r="7.5" />
+      <circle
+         cx="104.14021"
+         cy="186.6044"
+         fill="#000000"
+         id="circle2155"
+         style="stroke-width:1.25"
+         r="7.5" />
+    </g>
+    <!-- Mouth -->
+    <ellipse
+       cx="131.6028"
+       cy="213.79271"
+       fill="#3e7a77"
+       id="circle2157"
+       rx="11.527838"
+       ry="9.2636528"
+       style="stroke-width:1.22883" />
+  </g>
+  <!-- Floor -->
+  <rect
+     style="fill:#e8e9ed;fill-opacity:1;stroke-width:0.674335"
+     id="rect3490"
+     width="482.37091"
+     height="24.073071"
+     x="15.045849"
+     y="325.81213"
+     rx="0" />
+</svg>

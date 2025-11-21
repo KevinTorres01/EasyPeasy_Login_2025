@@ -1,0 +1,32 @@
+@page "/admin"
+@layout EasyPeasy_Login.Web.Components.Layout.AdminLayout
+@rendermode InteractiveServer
+
+<PageTitle>Admin Dashboard</PageTitle>
+
+<div class="dashboard">
+    <h1>👨‍💼 Admin Dashboard</h1>
+    <p>Panel de administración del portal cautivo</p>
+
+    <div class="stats-grid">
+        <div class="stat-card">
+            <h3>Active Sessions</h3>
+            <p class="stat-value">0</p>
+        </div>
+        <div class="stat-card">
+            <h3>Total Users</h3>
+            <p class="stat-value">1</p>
+        </div>
+        <div class="stat-card">
+            <h3>Connected Devices</h3>
+            <p class="stat-value">0</p>
+        </div>
+    </div>
+</div>
+
+@code {
+    protected override void OnInitialized()
+    {
+        // TODO: Load real data
+    }
+}
