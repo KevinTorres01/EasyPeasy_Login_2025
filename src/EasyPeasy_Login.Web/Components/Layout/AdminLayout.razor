@@ -1,10 +1,19 @@
 @inherits LayoutComponentBase
+@using EasyPeasy_Login.Web.Components.Shared;
+@inject NavigationManager Navigation
 
-<div class="admin-layout">
+<div class="page">
     <div class="sidebar">
-        <EasyPeasy_Login.Web.Components.Shared.NavMenu />
+        <NavMenu />
     </div>
-    <div class="main-content">
-        @Body
-    </div>
+
+    <main>
+        <div class="main-content">
+            @Body
+        </div>
+    </main>
 </div>
+
+@code {
+
+}
