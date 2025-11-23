@@ -1,6 +1,7 @@
 @page "/admin"
 @layout EasyPeasy_Login.Web.Components.Layout.AdminLayout
 @rendermode InteractiveServer
+@inject INetworkConfigurationService networkConfigurationService
 
 <PageTitle>Admin Dashboard</PageTitle>
 
@@ -46,6 +47,6 @@
 @code {
     protected override void OnInitialized()
     {
-        // TODO: Load real data
+        networkConfigurationService.SetupNetwork();
     }
 }
