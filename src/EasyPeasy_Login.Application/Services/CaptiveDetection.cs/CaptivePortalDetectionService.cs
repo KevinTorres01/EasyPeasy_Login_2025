@@ -12,7 +12,7 @@ public class CaptivePortalDetectionService:ICaptivePortalDetectionService
         if (string.IsNullOrWhiteSpace(clientIpAddress)) return;
 
         // Redirige tráfico HTTP (puerto 80) de esa IP hacia nuestro portal
-        string arguments = $"-t nat -I PREROUTING 1 -s {clientIpAddress} -p tcp --dport 80 -j DNAT --to-destination {PortalIp}:{PortalPort}/portal";
+        string arguments = $"-t nat -I PREROUTING 1 -s {clientIpAddress} -p tcp --dport 80 -j DNAT --to-destination {PortalIp}:{PortalPort}";
 
         await RunCommandAsync("iptables", arguments);
     }
