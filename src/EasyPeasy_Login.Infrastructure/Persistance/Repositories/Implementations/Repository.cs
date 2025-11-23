@@ -11,7 +11,30 @@ public abstract class Repository<T> where T : class
     protected Repository(string filePath)
     {
         FilePath = filePath;
+        EnsureFileExists();
         LoadData();
+    }
+     private void EnsureFileExists()
+    {
+        var directory = Path.GetDirectoryName(FilePath);
+        if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
+        {
+            Directory.CreateDirectory(directory);
+        }
+
+        if (!File.Exists(FilePath))
+        {
+            File.WriteAllText(FilePath, "[]");
+        }
+        else
+        {
+            // Check if file is empty or contains only whitespace
+            var content = File.ReadAllText(FilePath);
+            if (string.IsNullOrWhiteSpace(content))
+            {
+                File.WriteAllText(FilePath, "[]");
+            }
+        }
     }
 
     protected void LoadData()
