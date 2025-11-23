@@ -2,6 +2,7 @@ using EasyPeasy_Login.Web.Components;
 using EasyPeasy_Login.Application.Services;
 using EasyPeasy_Login.Domain.Helper;
 using EasyPeasy_Login.Infrastructure.Data.Repositories;
+using EasyPeasy_Login.Infrastructure.Network.Configuration;
 //using EasyPeasy_Login.Web.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -11,6 +12,9 @@ builder.Services.AddRazorComponents()
     .AddInteractiveServerComponents();
 
 builder.Services.AddControllers();
+
+// Register network configuration service
+builder.Services.AddScoped<INetworkConfigurationService, NetworkConfigurationService>();
 
 // Register presentation services
 // builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
