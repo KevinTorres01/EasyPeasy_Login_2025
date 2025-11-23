@@ -7,6 +7,8 @@
 @using EasyPeasy_Login.Web.Components.Portal
 @using EasyPeasy_Login.Application.Services
 
+@inject IAuthenticationService authenticationService
+
 
 <PageTitle>Welcome back!</PageTitle>
 
@@ -154,9 +156,6 @@
         await Task.Delay(1000);
         
         LoginRequestDto requestDto = new LoginRequestDto{Username = loginModel.Username, Password = loginModel.Password};
-        IPasswordHasher passwordHasher = new PasswordHasher();
-        IUserRepository userRepository = new UserRepository();
-        IAuthenticationService authenticationService = new AuthenticationService(userRepository, passwordHasher);
         
         LoginResponseDto response = await authenticationService.AuthenticateAsync(requestDto);
 
