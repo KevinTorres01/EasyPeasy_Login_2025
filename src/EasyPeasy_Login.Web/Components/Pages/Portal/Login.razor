@@ -1,7 +1,12 @@
 @page "/portal"
 @page "/portal/login"
 @rendermode InteractiveServer
+@using EasyPeasy_Login.Application.DTOs
+@using EasyPeasy_Login.Domain.Helper
+@using EasyPeasy_Login.Infrastructure.Data.Repositories
 @using EasyPeasy_Login.Web.Components.Portal
+@using EasyPeasy_Login.Application.Services
+
 
 <PageTitle>Welcome back!</PageTitle>
 
@@ -147,15 +152,23 @@
         errorMessage = null;
 
         await Task.Delay(1000);
+        
+        LoginRequestDto requestDto = new LoginRequestDto{Username = loginModel.Username, Password = loginModel.Password};
+        IPasswordHasher passwordHasher = new PasswordHasher();
+        IUserRepository userRepository = new UserRepository();
+        IAuthenticationService authenticationService = new AuthenticationService(userRepository, passwordHasher);
+        
+        LoginResponseDto response = await authenticationService.AuthenticateAsync(requestDto);
 
-        if (loginModel.Username == "admin" && loginModel.Password == "admin123")
+
+        if(response.Success)
         {
             Console.WriteLine("Successful login");
             errorMessage = null;
         }
         else
         {
-            errorMessage = "Invalid username or password";
+            errorMessage = response.Message;
         }
 
         isLoading = false;

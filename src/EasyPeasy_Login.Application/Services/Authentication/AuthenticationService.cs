@@ -25,6 +25,7 @@ public class AuthenticationService : IAuthenticationService
         }
         var isPasswordValid = _passwordHasher.VerifyPassword(
             user.HashedPassword, loginRequest.Password);
+        
         if (!isPasswordValid)
         {
             return new LoginResponseDto

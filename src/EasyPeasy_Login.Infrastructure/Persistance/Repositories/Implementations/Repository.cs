@@ -19,7 +19,15 @@ public abstract class Repository<T> where T : class
         if (File.Exists(FilePath))
         {
             var json = File.ReadAllText(FilePath);
-            Items = JsonSerializer.Deserialize<List<T>>(json) ?? new List<T>();
+            try
+            {
+                Items = JsonSerializer.Deserialize<List<T>>(json) ?? new List<T>();
+            }
+            catch(Exception e)
+            {
+                System.Console.WriteLine(e.Message);
+                Items = new List<T>();
+            }
         }
     }
 
@@ -32,6 +40,7 @@ public abstract class Repository<T> where T : class
             {
                 WriteIndented = true
             });
+
             await File.WriteAllTextAsync(FilePath, json);
         }
         finally

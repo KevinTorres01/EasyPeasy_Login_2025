@@ -29,6 +29,10 @@ article {
     align-items: center;
 }
 
+.top-header {
+    align-items: end;
+}
+
 /* Header */
 .page-header-wrapper {
     padding-bottom: 1rem;

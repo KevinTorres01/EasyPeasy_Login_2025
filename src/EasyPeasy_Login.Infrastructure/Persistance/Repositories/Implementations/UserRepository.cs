@@ -1,20 +1,16 @@
 
 using EasyPeasy_Login.Domain.Exceptions;
+using EasyPeasy_Login.Shared.Constants;
 
 namespace EasyPeasy_Login.Infrastructure.Data.Repositories;
 
 public class UserRepository : Repository<User>, IUserRepository
 {
-    public UserRepository(string path) : base(path)
+    public UserRepository() : base(PersistenceConstants.UserDataStoragePath)
     {
         if (!Items.Any())
         {
-            var defaultUser = new User
-            (
-                "admin",
-                //should be hashed by a proper hashing function that is not implemented yet
-                "admin123");
-            ;
+            User defaultUser = new User("admin", "$2a$11$OlHPfN0V9EcZwDZ2NhvzaOT0E6F8/EfWo2wHzJhSFEVEwd7fqBkCa"); // Username = admin, Password = admin05
             Items.Add(defaultUser);
             SaveDataAsync().Wait();
         }
@@ -37,7 +33,6 @@ public class UserRepository : Repository<User>, IUserRepository
         {
             throw new InvalidCredentialsException($"User '{user.Username}' already exists");
         }
-        user.CreatedAt = DateTime.UtcNow;
         Items.Add(user);
         await SaveDataAsync();
     }

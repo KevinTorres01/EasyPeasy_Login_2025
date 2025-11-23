@@ -1,11 +1,12 @@
 using EasyPeasy_Login.Domain.Interfaces;
+using EasyPeasy_Login.Shared.Constants;
 
 namespace EasyPeasy_Login.Infrastructure.Data.Repositories;
 
 public class SessionRepository : Repository<Session>, ISessionRepository
 {
 
-    public SessionRepository() : base("sessions.json") { }
+    public SessionRepository() : base(PersistenceConstants.SessionsDataStoragePath) { }
 
 
     public Task<Session?> GetByMacAddressAsync(string macAddress)

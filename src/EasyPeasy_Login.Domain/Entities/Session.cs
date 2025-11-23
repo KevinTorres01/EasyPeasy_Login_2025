@@ -1,3 +1,6 @@
+using System.Text.Json.Serialization;
+
+[JsonDerivedType(typeof(Session), typeDiscriminator: "Session")]
 public class Session
 {
     public string DeviceMacAddress { get; set; }

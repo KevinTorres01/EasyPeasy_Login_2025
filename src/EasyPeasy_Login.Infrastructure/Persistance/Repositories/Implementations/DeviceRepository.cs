@@ -1,11 +1,12 @@
 
 using EasyPeasy_Login.Domain.Interfaces;
+using EasyPeasy_Login.Shared.Constants;
 
 namespace EasyPeasy_Login.Infrastructure.Data.Repositories;
 
 public class DeviceRepository : Repository<Device>, IDeviceRepository
 {
-    public DeviceRepository() : base("devices.json") { }
+    public DeviceRepository() : base(PersistenceConstants.DevicesDataStoragePath) { }
 
     public Task AddAsync(Device entity)
     {

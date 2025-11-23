@@ -1,3 +1,6 @@
+using System.Text.Json.Serialization;
+
+[JsonDerivedType(typeof(Device), typeDiscriminator: "Device")]
 public class Device
 {
     public string IPAddress { get; set; }

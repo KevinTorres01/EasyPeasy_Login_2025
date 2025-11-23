@@ -1,18 +1,18 @@
+using System.Text.Json.Serialization;
+
+[JsonDerivedType(typeof(User), typeDiscriminator: "User")]
 public class User
 {
     public string Username { get; set; }
     public string HashedPassword { get; set; }
-    public DateTime CreatedAt { get; set; }
-    public DateTime LastLoginAt { get; set; }
     public bool IsActive { get; set; }
 
-    public User(string username, string password)
+    public User(string Username, string HashedPassword, bool IsActive = true)
     {
-        Username = username;
-        HashedPassword = password;
-        IsActive = true;
-        CreatedAt = DateTime.UtcNow;
-        LastLoginAt = DateTime.UtcNow;
+        this.Username = Username;
+        this.HashedPassword = HashedPassword;
+        this.IsActive = IsActive;
+
     }
 
 }
