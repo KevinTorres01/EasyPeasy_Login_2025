@@ -11,9 +11,9 @@ public class DeviceManagement : IDeviceManagement
         _deviceRepository = deviceRepository;
         _sessionRepository = sessionRepository;
     }
-    public async Task<bool> IsDeviceConnectedAsync(string deviceId)
+    public async Task<bool> IsDeviceAuthenticatedAsync(string macAddress)
     {
-        var device = await _deviceRepository.GetByMacAddressAsync(deviceId);
+        var device = await _deviceRepository.GetByMacAddressAsync(macAddress);
         if (device == null)
         {
             return false;
@@ -24,27 +24,34 @@ public class DeviceManagement : IDeviceManagement
         }
     }
 
-    public async Task ConnectDeviceAsync(string deviceId)
+    public async Task AuthenticateDeviceAsync(string macAddress, string ipAddress)
     {
-        var device = await _deviceRepository.GetByMacAddressAsync(deviceId);
+        var device = await _deviceRepository.GetByMacAddressAsync(macAddress);
         if (device == null)
         {
-            //Pending implementation
+            var newDevice = new Device(
+                macAddress,
+                ipAddress
+            );
+            await _deviceRepository.AddAsync(newDevice);
         }
-
     }
 
-    public async Task DisconnectDeviceAsync(string deviceId)
+    public async Task DisconnectDeviceAsync(string macAddress)
     {
-        var device = await _deviceRepository.GetByMacAddressAsync(deviceId);
+        var device = await _deviceRepository.GetByMacAddressAsync(macAddress);
         if (device != null)
         {
             var session = await _sessionRepository.GetByMacAddressAsync(device.MacAddress);
             if (session != null)
             {
                 await _sessionRepository.DeleteAsync(session.DeviceMacAddress, session.Username);
-                await _deviceRepository.DeleteAsync(device.MacAddress);
             }
         }
+    }
+
+    public async Task<IEnumerable<Device>> GetAllDevicesAsync()
+    {
+        return await _deviceRepository.GetAllAsync();
     }
 }

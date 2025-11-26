@@ -35,9 +35,7 @@ public class NetworkControlService : INetworkControlService
         var device = await _deviceRepository.GetByMacAddressAsync(macAddress);
         if (device != null)
         {
-            device.IsBlocked = false;
             device.IPAddress = ipAddress;
-            device.LastSeenAt = DateTime.UtcNow;
             await _deviceRepository.UpdateAsync(device);
 
             if (!_allowedDevices.Any(d => d.MacAddress == macAddress))
@@ -61,8 +59,6 @@ public class NetworkControlService : INetworkControlService
         var device = await _deviceRepository.GetByMacAddressAsync(macAddress);
         if (device != null)
         {
-            device.IsBlocked = true;
-            device.LastSeenAt = DateTime.UtcNow;
             await _deviceRepository.UpdateAsync(device);
 
             _allowedDevices.RemoveAll(d => d.MacAddress == macAddress);

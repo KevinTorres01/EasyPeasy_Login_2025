@@ -1,9 +1,11 @@
 using EasyPeasy_Login.Application.DTOs;
 namespace EasyPeasy_Login.Application.Services.DeviceManagement;
-interface IDeviceManagement
+
+public interface IDeviceManagement
 {
-    Task<bool> IsDeviceConnectedAsync(string deviceId);
-    Task ConnectDeviceAsync(string deviceId);
-    Task DisconnectDeviceAsync(string deviceId);
-    
+    Task<bool> IsDeviceAuthenticatedAsync(string macAddress);
+    Task AuthenticateDeviceAsync(string macAddress, string ipAddress);
+    Task DisconnectDeviceAsync(string macAddress);
+    Task<IEnumerable<Device>> GetAllDevicesAsync();
+
 }
