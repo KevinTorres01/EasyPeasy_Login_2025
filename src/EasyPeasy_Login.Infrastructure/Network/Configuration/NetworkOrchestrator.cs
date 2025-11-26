@@ -93,11 +93,6 @@ namespace EasyPeasy_Login.Infrastructure.Network.Configuration
             await RestoreConfiguration();
         }
 
-        private Task RestoreConfiguration()
-        {
-            throw new NotImplementedException();
-        }
-
         private void ShowFinalResume()
         {
             logger.LogInfo("\n========================================");
@@ -118,7 +113,7 @@ namespace EasyPeasy_Login.Infrastructure.Network.Configuration
             logger.LogInfo("========================================\n");
         }
 
-        async Task INetworkOrchestrator.RestoreConfiguration()
+        public async Task RestoreConfiguration()
         {
             logger.LogInfo("\n🔄 Restoring network configuration...");
 
