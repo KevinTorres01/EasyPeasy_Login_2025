@@ -1,7 +1,8 @@
 @page "/admin"
+@using EasyPeasy_Login.Infrastructure.Network.Configuration
 @layout EasyPeasy_Login.Web.Components.Layout.AdminLayout
 @rendermode InteractiveServer
-@inject INetworkConfigurationService networkConfigurationService
+@inject INetworkOrchestrator NetworkOrchestrator
 
 <PageTitle>Admin Dashboard</PageTitle>
 
@@ -47,6 +48,6 @@
 @code {
     protected override void OnInitialized()
     {
-        networkConfigurationService.SetupNetwork();
+
     }
 }

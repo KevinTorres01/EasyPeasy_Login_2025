@@ -8,6 +8,9 @@
 @using EasyPeasy_Login.Application.Services
 
 @inject IAuthenticationService authenticationService
+@inject IHttpContextAccessor HttpContextAccessor
+@inject IMacAddressResolver MacAddressResolver
+@inject NavigationManager Navigation
 
 
 <PageTitle>Welcome back!</PageTitle>
@@ -17,7 +20,7 @@
         <!-- Left panel-->
         <div class="left-panel">
             <div class="avatar-area">
-                 <AnimatedAvatars />
+                <AnimatedAvatars />
             </div>
         </div>
 
@@ -115,6 +118,36 @@
         showPassword = !showPassword;
     }
 
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var httpContext = HttpContextAccessor.HttpContext;
+
+            if (httpContext != null)
+            {
+                loginModel.clientIp = GetClientIpAddress(httpContext);
+
+                //loginModel.clientIp = GetClientIpAddress(httpContext);
+                loginModel.clientMac = httpContext.Request.Cookies["device_mac"] ?? string.Empty;
+
+                // 3. Si no hay MAC en cookie, obtenerla desde la tabla ARP del sistema
+                if (string.IsNullOrEmpty(loginModel.clientMac))
+                {
+                    loginModel.clientMac = await MacAddressResolver.GetMacAddressFromIpAsync(loginModel.clientIp) ?? "Not detected";
+                }
+
+                Console.WriteLine($"🔍 Cliente detectado - IP: {loginModel.clientIp}, MAC: {loginModel.clientMac}");
+            }
+
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error obtained from device: {ex.Message}");
+            errorMessage = "Error detecting device. Try again";
+        }
+    }
+
     private void OnTermsChanged()
     {
         // Show little devil when marks checkbox (true)
@@ -153,14 +186,27 @@
         isLoading = true;
         errorMessage = null;
 
+        if (string.IsNullOrEmpty(loginModel.clientIp) || loginModel.clientMac == "Not detected")
+        {
+            errorMessage = "Error detecting device. Verify your internet connection.";
+            isLoading = false;
+            return;
+        }
+
         await Task.Delay(1000);
-        
-        LoginRequestDto requestDto = new LoginRequestDto{Username = loginModel.Username, Password = loginModel.Password};
-        
+
+        LoginRequestDto requestDto = new LoginRequestDto
+        {
+            Username = loginModel.Username,
+            Password = loginModel.Password,
+            IpAddress = loginModel.clientIp,
+            MacAddress = loginModel.clientMac
+        };
+
         LoginResponseDto response = await authenticationService.AuthenticateAsync(requestDto);
 
 
-        if(response.Success)
+        if (response.Success)
         {
             Console.WriteLine("Successful login");
             errorMessage = null;
@@ -171,12 +217,26 @@
         }
 
         isLoading = false;
+        Navigation.NavigateTo($"portal/success");
     }
 
     public class LoginModel
     {
         public string Username { get; set; } = "";
         public string Password { get; set; } = "";
+        public string clientIp { get; set; } = string.Empty;
+        public string clientMac { get; set; } = string.Empty;
         public bool AcceptTerms { get; set; }
+    }
+
+    private string GetClientIpAddress(HttpContext context)
+    {
+        var forwardedFor = context.Request.Headers["X-Forwarded-For"].FirstOrDefault();
+        if (!string.IsNullOrEmpty(forwardedFor))
+        {
+            return forwardedFor.Split(',')[0].Trim();
+        }
+
+        return context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
     }
 }
