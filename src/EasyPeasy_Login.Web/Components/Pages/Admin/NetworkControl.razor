@@ -30,14 +30,6 @@
         </div>
     </div>
 
-    <!-- Debug test button -->
-    <div style="margin: 20px; padding: 20px; background: #333; border-radius: 8px;">
-        <p style="color: white;">Debug: Click counter = @_clickCount</p>
-        <button @onclick="TestClick" style="padding: 10px 20px; background: orange; border: none; cursor: pointer;">
-            Test Button (Click me!)
-        </button>
-    </div>
-
     <div class="network-content">
         <!-- Control Panel -->
         <div class="control-panel">
@@ -216,13 +208,7 @@
     private bool _showPassword = false;
     private bool _consoleExpanded = true;
     private int _clickCount = 0;
-
-    private void TestClick()
-    {
-        _clickCount++;
-        Console.WriteLine($"Test button clicked! Count: {_clickCount}");
-    }
-
+    
     private async Task StartNetwork()
     {
         Logger.LogInfo("🚀 Start Network button clicked");
