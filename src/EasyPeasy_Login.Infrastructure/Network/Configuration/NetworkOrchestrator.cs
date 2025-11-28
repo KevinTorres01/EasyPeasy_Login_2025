@@ -1,6 +1,7 @@
 
 using System.Runtime.CompilerServices;
 using System.Threading.Tasks;
+using EasyPeasy_Login.Shared;
 
 namespace EasyPeasy_Login.Infrastructure.Network.Configuration
 {
@@ -10,15 +11,17 @@ namespace EasyPeasy_Login.Infrastructure.Network.Configuration
         private readonly IHostapdManager hostapdManager;
         private readonly INetworkManager networkManager;
         private readonly ICaptivePortalControlManager captivePortalManager;
+        private readonly INetworkConfiguration config;
         private readonly ILogger logger;
 
-        public NetworkOrchestrator(IDnsmasqManager dnsmasq, IHostapdManager hostapd, INetworkManager network, ILogger logger, ICaptivePortalControlManager captivePortal)
+        public NetworkOrchestrator( IDnsmasqManager dnsmasq, IHostapdManager hostapd, INetworkManager network, ILogger logger, ICaptivePortalControlManager captivePortal, INetworkConfiguration networkConfiguration)
         {
             dnsmasqManager = dnsmasq;
             hostapdManager = hostapd;
             networkManager = network;
             this.logger = logger;
             captivePortalManager = captivePortal;
+            config = networkConfiguration;
         }
 
         public async Task<bool> SetUpNetwork()
@@ -27,20 +30,19 @@ namespace EasyPeasy_Login.Infrastructure.Network.Configuration
             {
                 logger.LogInfo("🔧 Starting Access Point configuration with Captive Portal...");
 
-                NetworkConfigurationDefaults._upstreamInterface = await networkManager.DetectUpstreamInterface();
+                config.UpstreamInterface = await networkManager.DetectUpstreamInterface();
 
-                if (string.IsNullOrEmpty(NetworkConfigurationDefaults._upstreamInterface))
+                if (string.IsNullOrEmpty(config.UpstreamInterface))
                 {
                     logger.LogWarning("⚠️ No upstream interface with Internet detected.");
                     logger.LogInfo("💡 Connect your phone via USB or ethernet before continuing.");
-                    Console.Write("Do you want to continue without Internet? (y/n): ");
                     await RestoreConfiguration();
                     return false;
                 }
                 else
                 {
-                    logger.LogInfo($"✅ Internet interface detected: {NetworkConfigurationDefaults._upstreamInterface}");
-                    if (NetworkConfigurationDefaults._isVpnInterface)
+                    logger.LogInfo($"✅ Internet interface detected: {config.UpstreamInterface}");
+                    if (config.IsVpnInterface)
                     {
                         logger.LogWarning("⚠️ This is a VPN interface. Special configuration will be applied.");
                     }
@@ -53,7 +55,7 @@ namespace EasyPeasy_Login.Infrastructure.Network.Configuration
 
                 await networkManager.ConfigureNetworkInterface();
 
-                logger.LogInfo($"✅ Interface {NetworkConfigurationDefaults._interface} configured with IP {NetworkConfigurationDefaults._gatewayIp}");
+                logger.LogInfo($"✅ Interface {config.Interface} configured with IP {config.GatewayIp}");
 
                 await hostapdManager.ConfigureHostapdAsync();
                 await hostapdManager.StartHostapdAsync();
@@ -69,7 +71,7 @@ namespace EasyPeasy_Login.Infrastructure.Network.Configuration
                 await Task.Delay(2000);
 
                 // Configure Captive Portal with iptables
-                if (!string.IsNullOrEmpty(NetworkConfigurationDefaults._upstreamInterface))
+                if (!string.IsNullOrEmpty(config.UpstreamInterface))
                 {
                     await captivePortalManager.ConfigureCaptivePortal();
                 }
@@ -88,24 +90,19 @@ namespace EasyPeasy_Login.Infrastructure.Network.Configuration
             }
         }
 
-        public async void Dispose()
-        {
-            await RestoreConfiguration();
-        }
-
         private void ShowFinalResume()
         {
             logger.LogInfo("\n========================================");
             logger.LogInfo("✅ Captive Portal configured successfully");
-            logger.LogInfo($"📡 SSID: {NetworkConfigurationDefaults._ssid}");
-            logger.LogInfo($"🔑 Password: {NetworkConfigurationDefaults._password}");
-            logger.LogInfo($"🌐 Gateway: {NetworkConfigurationDefaults._gatewayIp}");
-            logger.LogInfo($"🌐 DHCP Range: {NetworkConfigurationDefaults._dhcpRange}");
-            logger.LogInfo($"🔒 Portal: http://{NetworkConfigurationDefaults._gatewayIp}:{NetworkConfigurationDefaults.DefaultPort}/portal");
-            if (!string.IsNullOrEmpty(NetworkConfigurationDefaults._upstreamInterface))
+            logger.LogInfo($"📡 SSID: {config.Ssid}");
+            logger.LogInfo($"🔑 Password: {config.Password}");
+            logger.LogInfo($"🌐 Gateway: {config.GatewayIp}");
+            logger.LogInfo($"🌐 DHCP Range: {config.DhcpRange}");
+            logger.LogInfo($"🔒 Portal: http://{config.GatewayIp}:{config.DefaultPort}/portal");
+            if (!string.IsNullOrEmpty(config.UpstreamInterface))
             {
-                logger.LogInfo($"🌍 Internet shared from: {NetworkConfigurationDefaults._upstreamInterface}");
-                if (NetworkConfigurationDefaults._isVpnInterface)
+                logger.LogInfo($"🌍 Internet shared from: {config.UpstreamInterface}");
+                if (config.IsVpnInterface)
                 {
                     logger.LogInfo($"🔒 Traffic routed through VPN");
                 }
@@ -121,8 +118,10 @@ namespace EasyPeasy_Login.Infrastructure.Network.Configuration
             await dnsmasqManager.StopDnsmasqAsync();
             await captivePortalManager.RestoreCaptivePortalConfiguration();
             await networkManager.RestoreNetworkInterfaceConfiguration();
+            
+            config.ResetRuntimeState();
 
-            Console.WriteLine("✅ Configuration restored\n");
+            logger.LogInfo("✅ Configuration restored\n");
         }
     }
 }

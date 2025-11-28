@@ -1,31 +1,34 @@
 using System.Linq.Expressions;
 using System.Text.RegularExpressions;
-using EasyPeasy_Login.Infrastructure.Network.Configuration.Models;
+using EasyPeasy_Login.Shared;
 
 namespace EasyPeasy_Login.Infrastructure.Network.Configuration
 {
     public class NetworkManager : INetworkManager
     {
-        ILogger logger;
-        ICommandExecutor executor;
-        public NetworkManager(ILogger logger, ICommandExecutor executor)
+        private readonly ILogger logger;
+        private readonly ICommandExecutor executor;
+        private readonly INetworkConfiguration config;
+        
+        public NetworkManager(ILogger logger, ICommandExecutor executor, INetworkConfiguration networkConfiguration)
         {
             this.logger = logger;
             this.executor = executor;
+            this.config = networkConfiguration;
         }
         public async Task<ExecutionResult> ConfigureNetworkInterface()
         {
             logger.LogInfo("🔧 Configuring network interface...");
 
-            await executor.ExecuteCommandAsync(NetworkConfigurationsCommands.DisableLinuxNetworkManager(NetworkConfigurationDefaults._interface));
+            await executor.ExecuteCommandAsync(NetworkConfigurationsCommands.DisableLinuxNetworkManager(config.Interface));
             await Task.Delay(1000);
 
-            await executor.ExecuteCommandAsync(NetworkConfigurationsCommands.CleanIpAddressesAssociatedToAnInterface(NetworkConfigurationDefaults._interface));
-            await executor.ExecuteCommandAsync(NetworkConfigurationsCommands.DeactivateNetworkInterface(NetworkConfigurationDefaults._interface));
+            await executor.ExecuteCommandAsync(NetworkConfigurationsCommands.CleanIpAddressesAssociatedToAnInterface(config.Interface));
+            await executor.ExecuteCommandAsync(NetworkConfigurationsCommands.DeactivateNetworkInterface(config.Interface));
             await Task.Delay(500);
 
-            await executor.ExecuteCommandAsync(NetworkConfigurationsCommands.ActivateNetworkInterface(NetworkConfigurationDefaults._interface));
-            await executor.ExecuteCommandAsync(NetworkConfigurationsCommands.AddIpAddressToRoutesTable(NetworkConfigurationDefaults._gatewayIp, NetworkConfigurationDefaults._interface));
+            await executor.ExecuteCommandAsync(NetworkConfigurationsCommands.ActivateNetworkInterface(config.Interface));
+            await executor.ExecuteCommandAsync(NetworkConfigurationsCommands.AddIpAddressToRoutesTable(config.GatewayIp, config.Interface));
 
             logger.LogInfo("✅ Network interface configuration created successfully");
             return new ExecutionResult(0, "Network interface configured successfully.", string.Empty);
@@ -50,7 +53,7 @@ namespace EasyPeasy_Login.Infrastructure.Network.Configuration
                     if (match.Success)
                     {
                         var ifaceName = match.Groups[1].Value.Trim();
-                        if (ifaceName != "lo" && ifaceName != NetworkConfigurationDefaults._interface &&
+                        if (ifaceName != "lo" && ifaceName != config.Interface &&
                             !ifaceName.StartsWith("veth") &&
                             !ifaceName.StartsWith("docker") &&
                             !ifaceName.StartsWith("br-"))
@@ -78,7 +81,7 @@ namespace EasyPeasy_Login.Infrastructure.Network.Configuration
 
                         if (!upstreamIface.StartsWith("tun") &&
                             !upstreamIface.StartsWith("tap") &&
-                            upstreamIface != NetworkConfigurationDefaults._interface)
+                            upstreamIface != config.Interface)
                         {
                             return upstreamIface;
                         }
@@ -105,7 +108,7 @@ namespace EasyPeasy_Login.Infrastructure.Network.Configuration
                             logger.LogWarning($"💡 No physical interface found, using VPN: {upstreamIface}");
                             logger.LogInfo("VPN will be used to share the Internet");
 
-                            NetworkConfigurationDefaults._isVpnInterface = true;
+                            config.IsVpnInterface = true;
                             return upstreamIface;
                         }
                     }
@@ -113,7 +116,7 @@ namespace EasyPeasy_Login.Infrastructure.Network.Configuration
 
                 foreach (var iface in availableInterfaces)
                 {
-                    var addrInfo = await executor.ExecuteCommandAsync(NetworkConfigurationsCommands.ShowInfoAboutIpAddressConfiguredOnInterface(iface), ignoreErrors: true);
+                    var addrInfo = await executor.ExecuteCommandAsync(NetworkConfigurationsCommands.ShowAllNetworkInterfacesInfo(), ignoreErrors: true);
                     if (addrInfo.Output.Contains("inet ") && !addrInfo.Output.Contains("127.0.0.1") && addrInfo.Output.Contains("state UP"))
                     {
                         logger.LogWarning($"⚠️ No default route, using active interface: {iface}");
@@ -137,13 +140,13 @@ namespace EasyPeasy_Login.Infrastructure.Network.Configuration
 
         public async Task<ExecutionResult> RestoreNetworkInterfaceConfiguration()
         {
-            Console.WriteLine("\n🔄 Restaurando configuración de red...");
+            logger.LogInfo("\n🔄 Restaurando configuración de red...");
             await executor.ExecuteCommandAsync(NetworkConfigurationsCommands.DisableIpPacketForwarding(), ignoreErrors:true);
 
-            await executor.ExecuteCommandAsync(NetworkConfigurationsCommands.CleanIpAddressesAssociatedToAnInterface(NetworkConfigurationDefaults._interface), ignoreErrors:true);
-            await executor.ExecuteCommandAsync(NetworkConfigurationsCommands.DeactivateNetworkInterface(NetworkConfigurationDefaults._interface), ignoreErrors: true);
+            await executor.ExecuteCommandAsync(NetworkConfigurationsCommands.CleanIpAddressesAssociatedToAnInterface(config.Interface), ignoreErrors:true);
+            await executor.ExecuteCommandAsync(NetworkConfigurationsCommands.DeactivateNetworkInterface(config.Interface), ignoreErrors: true);
 
-            await executor.ExecuteCommandAsync(NetworkConfigurationsCommands.EnableLinuxNetworkManager(NetworkConfigurationDefaults._interface), ignoreErrors:true);
+            await executor.ExecuteCommandAsync(NetworkConfigurationsCommands.EnableLinuxNetworkManager(config.Interface), ignoreErrors:true);
 
             return new ExecutionResult(0, "Network interface restored successfully.", string.Empty);
         }

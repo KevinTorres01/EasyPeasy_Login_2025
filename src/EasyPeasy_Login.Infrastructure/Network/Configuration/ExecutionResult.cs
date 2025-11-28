@@ -1,4 +1,4 @@
-namespace EasyPeasy_Login.Infrastructure.Network.Configuration.Models;
+namespace EasyPeasy_Login.Infrastructure.Network.Configuration;
 
 public record ExecutionResult(int ExitCode, string Output, string Error)
 {

@@ -17,8 +17,9 @@ public class RequestRouterMiddleware
     {
         var path = context.Request.Path.Value?.ToLower() ?? string.Empty;
 
-        // Allow Blazor framework files and static resources
+        // Allow Blazor framework files, SignalR, and static resources
         if (path.StartsWith("/_framework") ||
+            path.StartsWith("/_blazor") ||
             path.StartsWith("/_content") ||
             path.StartsWith("/css") ||
             path.StartsWith("/js") ||

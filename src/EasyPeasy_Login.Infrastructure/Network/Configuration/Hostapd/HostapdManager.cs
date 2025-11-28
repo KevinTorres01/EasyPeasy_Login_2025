@@ -1,36 +1,38 @@
-using EasyPeasy_Login.Infrastructure.Network.Configuration.Models;
 using System;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
+using EasyPeasy_Login.Shared;
 
 namespace EasyPeasy_Login.Infrastructure.Network.Configuration
 {
     public class HostapdManager : IHostapdManager
     {
-        readonly ICommandExecutor executor;
-        readonly ILogger logger;
+        private readonly ICommandExecutor executor;
+        private readonly INetworkConfiguration config;
+        private readonly ILogger logger;
 
-        private readonly string hostapdConfig = $@"interface={NetworkConfigurationDefaults._interface}
-                                                driver=nl80211
-                                                ssid={NetworkConfigurationDefaults._ssid}
-                                                hw_mode=g
-                                                channel=6
-                                                ieee80211n=1
-                                                wmm_enabled=1
-                                                macaddr_acl=0
-                                                auth_algs=1
-                                                ignore_broadcast_ssid=0
-                                                wpa=2
-                                                wpa_passphrase={NetworkConfigurationDefaults._password}
-                                                wpa_key_mgmt=WPA-PSK
-                                                wpa_pairwise=CCMP
-                                                rsn_pairwise=CCMP
-                                                ";
-        public HostapdManager(ICommandExecutor executor, ILogger logger)
+        private string GetHostapdConfig() => $@"interface={config.Interface}
+driver=nl80211
+ssid={config.Ssid}
+hw_mode=g
+channel=6
+ieee80211n=1
+wmm_enabled=1
+macaddr_acl=0
+auth_algs=1
+ignore_broadcast_ssid=0
+wpa=2
+wpa_passphrase={config.Password}
+wpa_key_mgmt=WPA-PSK
+wpa_pairwise=CCMP
+rsn_pairwise=CCMP
+";
+        public HostapdManager(ICommandExecutor executor, ILogger logger, INetworkConfiguration networkConfiguration)
         {
             this.executor = executor;
             this.logger = logger;
+            this.config = networkConfiguration;
         }
         public async Task<ExecutionResult> ConfigureHostapdAsync()
         {
@@ -63,6 +65,8 @@ namespace EasyPeasy_Login.Infrastructure.Network.Configuration
                 // proceed even if backup failed
             }
 
+            string hostapdConfig = GetHostapdConfig();
+
             await File.WriteAllTextAsync("/etc/hostapd/hostapd.conf", hostapdConfig);
 
             logger.LogInfo("✅ Hostapd configuration created successfully");
@@ -72,7 +76,7 @@ namespace EasyPeasy_Login.Infrastructure.Network.Configuration
         public async Task<ExecutionResult> StartHostapdAsync()
         {
             var result = await executor.ExecuteCommandWithOutput(HostapdCommands.StartHostapd("/etc/hostapd/hostapd.conf"));
-            logger.LogInfo($"Hostapd output: {result}");
+            logger.LogInfo($"Hostapd output: {result.Output}");
 
             await Task.Delay(3000);
 

@@ -49,7 +49,7 @@ public class AuthenticationService : IAuthenticationService
         {
             MacAddress = loginRequest.MacAddress,
             Name = loginRequest.Username,
-            IPAddress = loginRequest.IPAddress
+            IPAddress = loginRequest.IpAddress
         });
         return new LoginResponseDto
         {

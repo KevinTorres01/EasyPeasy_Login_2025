@@ -1,56 +1,58 @@
-using EasyPeasy_Login.Infrastructure.Network.Configuration.Models;
 using System;
 using System.IO;
 using System.Threading.Tasks;
+using EasyPeasy_Login.Shared;
 
 namespace EasyPeasy_Login.Infrastructure.Network.Configuration
 {
     public class DnsmasqManager : IDnsmasqManager
     {
         private readonly ICommandExecutor executor;
+        private readonly INetworkConfiguration config;
         private readonly ILogger logger;
 
-        public DnsmasqManager(ICommandExecutor executor, ILogger logger)
+        public DnsmasqManager(ICommandExecutor executor, ILogger logger, INetworkConfiguration networkConfiguration)
         {
             this.executor = executor;
             this.logger = logger;
+            this.config = networkConfiguration;
         }
 
-        private readonly string dnsmasqConfig = $@"# Interfaces
-                                                interface={NetworkConfigurationDefaults._interface}
-                                                bind-interfaces
+        private string GetDnsmasqConfig() => $@"# Interfaces
+interface={config.Interface}
+bind-interfaces
 
-                                                # Listen on gateway and localhost
-                                                listen-address={NetworkConfigurationDefaults._gatewayIp}
-                                                listen-address=127.0.0.1
+# Listen on gateway and localhost
+listen-address={config.GatewayIp}
+listen-address=127.0.0.1
 
-                                                # DNS Configuration
-                                                no-resolv
-                                                no-poll
-                                                no-hosts
+# DNS Configuration
+no-resolv
+no-poll
+no-hosts
 
-                                                # DHCP Range
-                                                dhcp-range={NetworkConfigurationDefaults._dhcpRange},12h
-                                                dhcp-option=3,{NetworkConfigurationDefaults._gatewayIp}     # Default Gateway
-                                                dhcp-option=6,{NetworkConfigurationDefaults._gatewayIp}     # DNS Server
+# DHCP Range
+dhcp-range={config.DhcpRange},12h
+dhcp-option=3,{config.GatewayIp}     # Default Gateway
+dhcp-option=6,{config.GatewayIp}     # DNS Server
 
-                                                # DNS Spoofing: All domains resolve to the gateway
-                                                address=/#/{NetworkConfigurationDefaults._gatewayIp}
+# DNS Spoofing: All domains resolve to the gateway
+address=/#/{config.GatewayIp}
 
-                                                # Disable IPv6 to avoid REFUSED errors
-                                                filter-AAAA
+# Disable IPv6 to avoid REFUSED errors
+filter-AAAA
 
-                                                # Authoritative mode (respond as authoritative)
-                                                dhcp-authoritative
+# Authoritative mode (respond as authoritative)
+dhcp-authoritative
 
-                                                # Logging (for debugging)
-                                                log-queries
-                                                log-dhcp
-                                                log-facility=/var/log/dnsmasq-captive.log
+# Logging (for debugging)
+log-queries
+log-dhcp
+log-facility=/var/log/dnsmasq-captive.log
 
-                                                # Performance
-                                                cache-size=150
-                                                ";
+# Performance
+cache-size=150
+";
 
         public async Task<ExecutionResult> ConfigureDnsmasqAsync()
         {
@@ -63,6 +65,8 @@ namespace EasyPeasy_Login.Infrastructure.Network.Configuration
             // Prevent systemd-resolved from restarting automatically
             await executor.ExecuteCommandAsync(DnsmasqCommands.DisableCompletelyDnsSystemResolverByMasking(), ignoreErrors: true);
             await Task.Delay(2000);
+
+            string dnsmasqConfig = GetDnsmasqConfig();
 
             await File.WriteAllTextAsync("/etc/dnsmasq.d/captive-portal.conf", dnsmasqConfig);
 
@@ -97,7 +101,7 @@ namespace EasyPeasy_Login.Infrastructure.Network.Configuration
 
                 // Test DNS spoofing
                 await Task.Delay(1000);
-                var testDns = await executor.ExecuteCommandAsync(DnsmasqCommands.MakeDnsRequestUsingGatewayDnsServer("google.com", NetworkConfigurationDefaults._gatewayIp), ignoreErrors: true);
+                var testDns = await executor.ExecuteCommandAsync(DnsmasqCommands.MakeDnsRequestUsingGatewayDnsServer("google.com", config.GatewayIp), ignoreErrors: true);
                 logger.LogInfo($"🧪 DNS spoofing test:\n{testDns}");
                 return new ExecutionResult(0, "dnsmasq is running with DNS spoofing.", string.Empty);
             }
@@ -165,17 +169,17 @@ namespace EasyPeasy_Login.Infrastructure.Network.Configuration
             var netstat = await executor.ExecuteCommandAsync(NetworkConfigurationsCommands.GetAllProcessListeningOnPort(53), ignoreErrors: true);
             logger.LogInfo($"Services on port 53:\n{netstat.Output}");
 
-            if (!netstat.Output.Contains($"{NetworkConfigurationDefaults._gatewayIp}:53"))
+            if (!netstat.Output.Contains($"{config.GatewayIp}:53"))
             {
-                logger.LogError($"❌ dnsmasq is NOT listening on {NetworkConfigurationDefaults._gatewayIp}:53");
-                throw new Exception($"❌ dnsmasq is NOT listening on {NetworkConfigurationDefaults._gatewayIp}:53");
+                logger.LogError($"❌ dnsmasq is NOT listening on {config.GatewayIp}:53");
+                throw new Exception($"❌ dnsmasq is NOT listening on {config.GatewayIp}:53");
             }
 
             // Test 3: Resolve a domain from the gateway
-            var nslookup = await executor.ExecuteCommandAsync(DnsmasqCommands.MakeDnsRequestUsingGatewayDnsServer("google.com", NetworkConfigurationDefaults._gatewayIp));
+            var nslookup = await executor.ExecuteCommandAsync(DnsmasqCommands.MakeDnsRequestUsingGatewayDnsServer("google.com", config.GatewayIp));
             Console.WriteLine($"Test DNS (nslookup):\n{nslookup.Output}");
 
-            if (!nslookup.Output.Contains($"Address: {NetworkConfigurationDefaults._gatewayIp}") || nslookup.Output.Contains("REFUSED"))
+            if (!nslookup.Output.Contains($"Address: {config.GatewayIp}") || nslookup.Output.Contains("REFUSED"))
             {
                 logger.LogWarning("⚠️ DNS spoofing is not responding correctly");
 

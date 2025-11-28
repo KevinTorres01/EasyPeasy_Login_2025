@@ -1,15 +1,18 @@
+using EasyPeasy_Login.Shared;
 
 namespace EasyPeasy_Login.Infrastructure.Network.Configuration
 {
     public class CaptivePortalControlManager : ICaptivePortalControlManager
     {
         private readonly ICommandExecutor executor;
+        private readonly INetworkConfiguration config;
         private readonly ILogger logger;
 
-        public CaptivePortalControlManager(ICommandExecutor commandExecutor, ILogger logger)
+        public CaptivePortalControlManager(ICommandExecutor commandExecutor, ILogger logger, INetworkConfiguration networkConfiguration)
         {
             executor = commandExecutor;
             this.logger = logger;
+            this.config = networkConfiguration;
         }
         public async Task ConfigureCaptivePortal()
         {
@@ -43,8 +46,8 @@ namespace EasyPeasy_Login.Infrastructure.Network.Configuration
             await AllowDhcp();
 
                 // Access to the web portal (port 8080)
-                logger.LogInfo($"🔧 Allowing access to the web portal (port {NetworkConfigurationDefaults.DefaultPort})...");
-                await executor.ExecuteCommandAsync(IptablesCommands.AllowAccessToPortal(NetworkConfigurationDefaults._interface, NetworkConfigurationDefaults.DefaultPort));
+                logger.LogInfo($"🔧 Allowing access to the web portal (port {config.DefaultPort})...");
+                await executor.ExecuteCommandAsync(IptablesCommands.AllowAccessToPortal(config.Interface, config.DefaultPort));
 
             // ICMP (ping)
             await AllowIcmp();
@@ -56,12 +59,12 @@ namespace EasyPeasy_Login.Infrastructure.Network.Configuration
             await CreateAndConfigureCustomChainForAuthenticatedUsers();
 
             // NAT/MASQUERADE (only if there is an upstream interface)
-            if (!string.IsNullOrEmpty(NetworkConfigurationDefaults._upstreamInterface))
+            if (!string.IsNullOrEmpty(config.UpstreamInterface))
             {
-                logger.LogInfo($"🔧 Configuring NAT to {NetworkConfigurationDefaults._upstreamInterface}...");
-                await executor.ExecuteCommandAsync(IptablesCommands.ConfigureNat(NetworkConfigurationDefaults._upstreamInterface));
+                logger.LogInfo($"🔧 Configuring NAT to {config.UpstreamInterface}...");
+                await executor.ExecuteCommandAsync(IptablesCommands.ConfigureNat(config.UpstreamInterface));
 
-                if (NetworkConfigurationDefaults._isVpnInterface)
+                if (config.IsVpnInterface)
                 {
                     await executor.ExecuteCommandAsync(IptablesCommands.OptimizesTcpSegmentSize(), ignoreErrors: true);
                 }
@@ -84,8 +87,8 @@ namespace EasyPeasy_Login.Infrastructure.Network.Configuration
         private async Task ConfigureDnsRedirect()
         {
             logger.LogInfo("🔧 Configuring DNS redirect...");
-            await executor.ExecuteCommandAsync(IptablesCommands.InterceptUdpDnsTrafficAndRedirectToThisDevice(NetworkConfigurationDefaults._interface));
-            await executor.ExecuteCommandAsync(IptablesCommands.InterceptTcpDnsTrafficAndRedirectToThisDevice(NetworkConfigurationDefaults._interface));
+            await executor.ExecuteCommandAsync(IptablesCommands.InterceptUdpDnsTrafficAndRedirectToThisDevice(config.Interface));
+            await executor.ExecuteCommandAsync(IptablesCommands.InterceptTcpDnsTrafficAndRedirectToThisDevice(config.Interface));
         }
 
         private async Task ConfigureDefaultPolicies()
@@ -112,29 +115,29 @@ namespace EasyPeasy_Login.Infrastructure.Network.Configuration
         private async Task AllowDnsGettingIntoGateway()
         {
             logger.LogInfo("🔧 Allowing DNS queries to the gateway...");
-            await executor.ExecuteCommandAsync(IptablesCommands.AllowDnsGettingInToThisDeviceUdp(NetworkConfigurationDefaults._interface));
-            await executor.ExecuteCommandAsync(IptablesCommands.AllowDnsGettingInToThisDeviceTcp(NetworkConfigurationDefaults._interface));
+            await executor.ExecuteCommandAsync(IptablesCommands.AllowDnsGettingInToThisDeviceUdp(config.Interface));
+            await executor.ExecuteCommandAsync(IptablesCommands.AllowDnsGettingInToThisDeviceTcp(config.Interface));
 
         }
 
         private async Task AllowDhcp()
         {
             logger.LogInfo("🔧 Allowing DHCP...");
-            await executor.ExecuteCommandAsync(IptablesCommands.AllowDhcpGettingIn(NetworkConfigurationDefaults._interface));
-            await executor.ExecuteCommandAsync(IptablesCommands.AllowDhcpGettingOut(NetworkConfigurationDefaults._interface));
+            await executor.ExecuteCommandAsync(IptablesCommands.AllowDhcpGettingIn(config.Interface));
+            await executor.ExecuteCommandAsync(IptablesCommands.AllowDhcpGettingOut(config.Interface));
         }
 
         private async Task AllowIcmp()
         {
-            await executor.ExecuteCommandAsync(IptablesCommands.AllowIcmpGettingInToThisDevice(NetworkConfigurationDefaults._interface));
+            await executor.ExecuteCommandAsync(IptablesCommands.AllowIcmpGettingInToThisDevice(config.Interface));
             await executor.ExecuteCommandAsync(IptablesCommands.AllowIcmpPassingThroughThisDevice());
         }
 
         private async Task RedirectToPortal()
         {
             logger.LogInfo($"🔧 Redirecting HTTP/HTTPS to the portal...");
-            await executor.ExecuteCommandAsync(IptablesCommands.RedirectHttpTrafficToPortal(NetworkConfigurationDefaults._interface, NetworkConfigurationDefaults._gatewayIp, NetworkConfigurationDefaults.DefaultPort));
-            await executor.ExecuteCommandAsync(IptablesCommands.RedirectHttpsTrafficToPortal(NetworkConfigurationDefaults._interface, NetworkConfigurationDefaults._gatewayIp, NetworkConfigurationDefaults.DefaultPort));
+            await executor.ExecuteCommandAsync(IptablesCommands.RedirectHttpTrafficToPortal(config.Interface, config.GatewayIp, config.DefaultPort));
+            await executor.ExecuteCommandAsync(IptablesCommands.RedirectHttpsTrafficToPortal(config.Interface, config.GatewayIp, config.DefaultPort));
         }
 
         private async Task CreateAndConfigureCustomChainForAuthenticatedUsers()
@@ -145,8 +148,8 @@ namespace EasyPeasy_Login.Infrastructure.Network.Configuration
             await executor.ExecuteCommandAsync(IptablesCommands.CleanPersonalizedChainForAuthenticatedUser(), ignoreErrors: true);
 
             // By default, if a user reaches here they are NOT authenticated → DROP
-            await executor.ExecuteCommandAsync(IptablesCommands.RedirectTrafficPassingThroughToCustomChainForAuthenticatedUsers(NetworkConfigurationDefaults._interface));
-            await executor.ExecuteCommandAsync(IptablesCommands.ForbidPacketsPassingThroughThisDevice(NetworkConfigurationDefaults._interface));
+            await executor.ExecuteCommandAsync(IptablesCommands.RedirectTrafficPassingThroughToCustomChainForAuthenticatedUsers(config.Interface));
+            await executor.ExecuteCommandAsync(IptablesCommands.ForbidPacketsPassingThroughThisDevice(config.Interface));
         }
 
         public async Task RestoreCaptivePortalConfiguration()

@@ -1,6 +1,6 @@
 using System.Threading;
 using System.Threading.Tasks;
-using EasyPeasy_Login.Infrastructure.Network.Configuration.Models;
+using EasyPeasy_Login.Infrastructure.Network.Configuration;
 
 namespace EasyPeasy_Login.Infrastructure.Network.Configuration
 {

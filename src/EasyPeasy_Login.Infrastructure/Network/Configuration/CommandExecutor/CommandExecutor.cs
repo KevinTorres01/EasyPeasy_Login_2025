@@ -1,7 +1,6 @@
 using System.Diagnostics;
-using EasyPeasy_Login.Infrastructure.Network.Configuration.Models;
 
-namespace EasyPeasy_Login.Infrastructure.Network.Configuration.CommandExecutor;
+namespace EasyPeasy_Login.Infrastructure.Network.Configuration;
 
 public class CommandExecutor : ICommandExecutor
 {
@@ -24,6 +23,7 @@ public class CommandExecutor : ICommandExecutor
 
         string output = await process.StandardOutput.ReadToEndAsync();
         string error = await process.StandardError.ReadToEndAsync();
+        await process.WaitForExitAsync();
         var exit = process.ExitCode;
         var result = new ExecutionResult(exit, output, error);
 
