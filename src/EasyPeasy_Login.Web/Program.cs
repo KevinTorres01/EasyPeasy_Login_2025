@@ -23,7 +23,7 @@ builder.Services.AddControllers();
 builder.Services.AddSingleton<INetworkConfiguration, NetworkConfiguration>();
 
 // Register logger as singleton to share logs across all components
-builder.Services.AddSingleton<ILogger, Logger>();
+builder.Services.AddSingleton<EasyPeasy_Login.Shared.ILogger, Logger>();
 
 // Register presentation services
 builder.Services.AddScoped<ICommandExecutor, CommandExecutor>();

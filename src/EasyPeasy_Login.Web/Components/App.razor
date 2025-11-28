@@ -9,12 +9,14 @@
     <link rel="stylesheet" href="css/navmenu.css"/>
     <link rel="stylesheet" href="css/admin.css" />
     <link rel="stylesheet" href="css/portal.css" />
+    <link rel="stylesheet" href="css/network-control.css" />
+    <link rel="stylesheet" href="css/log-console.css" />
     <link rel="icon" type="image/png" href="favicon.png" />
-    <HeadOutlet />
+    <HeadOutlet @rendermode="InteractiveServer" />
 </head>
 
 <body>
-    <Routes />
+    <Routes @rendermode="InteractiveServer" />
     <script src="_framework/blazor.web.js"></script>
 </body>
 
