@@ -138,6 +138,13 @@ namespace EasyPeasy_Login.Infrastructure.Network.Configuration
             return await executor.ExecuteCommandAsync(NetworkConfigurationsCommands.EnableIpPacketForwarding());
         }
 
+        public async Task<ExecutionResult> RestartNetworkInterface()
+        {
+            await executor.ExecuteCommandAsync(NetworkConfigurationsCommands.DeactivateNetworkInterface(config.Interface));
+            await executor.ExecuteCommandAsync(NetworkConfigurationsCommands.ActivateNetworkInterface(config.Interface));        
+            return new ExecutionResult(0, "Network interface restarted successfully.", string.Empty);
+        }
+
         public async Task<ExecutionResult> RestoreNetworkInterfaceConfiguration()
         {
             logger.LogInfo("\n🔄 Restaurando configuración de red...");

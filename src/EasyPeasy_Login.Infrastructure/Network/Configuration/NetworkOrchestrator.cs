@@ -114,10 +114,11 @@ namespace EasyPeasy_Login.Infrastructure.Network.Configuration
         {
             logger.LogInfo("\n🔄 Restoring network configuration...");
 
+            await networkManager.RestoreNetworkInterfaceConfiguration();
             await hostapdManager.StopHostapdAsync();
             await dnsmasqManager.StopDnsmasqAsync();
             await captivePortalManager.RestoreCaptivePortalConfiguration();
-            await networkManager.RestoreNetworkInterfaceConfiguration();
+            await networkManager.RestartNetworkInterface();
             
             config.ResetRuntimeState();
 

@@ -9,5 +9,6 @@ namespace EasyPeasy_Login.Infrastructure.Network.Configuration
         Task<ExecutionResult> UnblockRfkill();
         Task<ExecutionResult> EnableIpPacketForwarding();
         Task<ExecutionResult> RestoreNetworkInterfaceConfiguration();
+        Task<ExecutionResult> RestartNetworkInterface();
     }
 }

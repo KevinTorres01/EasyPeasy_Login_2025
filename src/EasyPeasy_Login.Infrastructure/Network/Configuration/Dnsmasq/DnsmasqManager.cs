@@ -28,6 +28,7 @@ listen-address=127.0.0.1
 
 # DNS Configuration
 no-resolv
+server=8.8.8.8
 no-poll
 no-hosts
 

@@ -54,11 +54,11 @@ public static class IptablesCommands
     }
     public static string AllowDnsGettingInToThisDeviceUdp(string _interface)
     {
-        return $"iptables -A INPUT -i {_interface} -p udp --dport 53 -j ACCEPT";
+        return $"iptables -A INPUT -p udp --dport 53 -j ACCEPT";
     }
     public static string AllowDnsGettingInToThisDeviceTcp(string _interface)
     {
-        return $"iptables -A INPUT -i {_interface} -p tcp --dport 53 -j ACCEPT";
+        return $"iptables -A INPUT -p tcp --dport 53 -j ACCEPT";
     }
     public static string AllowDhcpGettingIn(string _interface)
     {
