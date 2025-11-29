@@ -4,21 +4,53 @@ using System.Threading.Tasks;
 using EasyPeasy_Login.Application.DTOs;
 using EasyPeasy_Login.Domain.Helper;
 using EasyPeasy_Login.Domain.Exceptions;
+using EasyPeasy_Login.Domain.Interfaces;
+
 namespace EasyPeasy_Login.Application.Services.UserManagement;
 
 public class UserManagementService : IUserManagementService
 {
     private readonly IUserRepository _userRepository;
     private readonly IPasswordHasher _passwordHasher;
+    private readonly ISessionRepository _sessionRepository;
 
-    public UserManagementService(IUserRepository userRepository, IPasswordHasher passwordHasher)
+    public UserManagementService(IUserRepository userRepository, IPasswordHasher passwordHasher, ISessionRepository sessionRepository)
     {
         _userRepository = userRepository;
         _passwordHasher = passwordHasher;
+        _sessionRepository = sessionRepository;
     }
 
     public async Task<CreateUserResponseDto> CreateUserAsync(string username, string password)
     {
+        // Validación de entrada
+        if (string.IsNullOrWhiteSpace(username))
+        {
+            return new CreateUserResponseDto
+            {
+                Success = false,
+                Message = "Username cannot be empty."
+            };
+        }
+
+        if (string.IsNullOrWhiteSpace(password))
+        {
+            return new CreateUserResponseDto
+            {
+                Success = false,
+                Message = "Password cannot be empty."
+            };
+        }
+
+        if (password.Length < 4)
+        {
+            return new CreateUserResponseDto
+            {
+                Success = false,
+                Message = "Password must be at least 4 characters long."
+            };
+        }
+
         var existingUser = await _userRepository.GetByUsernameAsync(username);
         if (existingUser != null)
         {
@@ -41,12 +73,19 @@ public class UserManagementService : IUserManagementService
         };
     }
 
-    public Task DeleteUserAsync(string username)
+    public async Task DeleteUserAsync(string username)
     {
-        var user = _userRepository.GetByUsernameAsync(username);
+        var user = await _userRepository.GetByUsernameAsync(username);
         if (user != null)
         {
-            return _userRepository.DeleteByUsernameAsync(username);
+            // Eliminar todas las sesiones del usuario antes de eliminarlo
+            var sessions = await _sessionRepository.GetByUsernameAsync(username);
+            foreach (var session in sessions)
+            {
+                await _sessionRepository.DeleteAsync(session.DeviceMacAddress, session.Username);
+            }
+            
+            await _userRepository.DeleteByUsernameAsync(username);
         }
         else
         {
@@ -81,30 +120,45 @@ public class UserManagementService : IUserManagementService
         return null;
     }
 
-    public Task<UpdateUserResponseDto> UpdateUserAsync(UpdateUserRequestDto updateUserRequest)
+    public async Task<UpdateUserResponseDto> UpdateUserAsync(UpdateUserRequestDto updateUserRequest)
     {
-        return Task.Run(async () =>
+        if (string.IsNullOrWhiteSpace(updateUserRequest.Name))
         {
-            var user = await _userRepository.GetByUsernameAsync(updateUserRequest.Name);
-            if (user == null)
+            return new UpdateUserResponseDto
+            {
+                Success = false,
+                Message = "Username cannot be empty."
+            };
+        }
+
+        var user = await _userRepository.GetByUsernameAsync(updateUserRequest.Name);
+        if (user == null)
+        {
+            return new UpdateUserResponseDto
+            {
+                Success = false,
+                Message = "User not found."
+            };
+        }
+
+        if (!string.IsNullOrEmpty(updateUserRequest.Password))
+        {
+            if (updateUserRequest.Password.Length < 4)
             {
                 return new UpdateUserResponseDto
                 {
                     Success = false,
-                    Message = "User not found."
+                    Message = "Password must be at least 4 characters long."
                 };
             }
-
-            if (!string.IsNullOrEmpty(updateUserRequest.Password))
-            {
-                user.HashedPassword = _passwordHasher.HashPassword(updateUserRequest.Password);
-            }
-            await _userRepository.UpdateAsync(user);
-            return new UpdateUserResponseDto
-            {
-                Success = true,
-                Message = "User updated successfully."
-            };
-        });
+            user.HashedPassword = _passwordHasher.HashPassword(updateUserRequest.Password);
+        }
+        
+        await _userRepository.UpdateAsync(user);
+        return new UpdateUserResponseDto
+        {
+            Success = true,
+            Message = "User updated successfully."
+        };
     }
 }

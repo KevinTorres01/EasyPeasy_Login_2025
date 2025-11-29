@@ -1,10 +1,12 @@
 using System;
+using System.Collections.Concurrent;
 using System.Diagnostics;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
 using System.Text.RegularExpressions;
 using System.Threading;
+using System.Threading.Channels;
 using System.Threading.Tasks;
 using EasyPeasy_Login.Application.Services.SessionManagement;
 using EasyPeasy_Login.Application.DTOs;
@@ -14,6 +16,9 @@ public class HttpServer
 {
     private readonly ISessionManagementService _sessionManagementService;
     private TcpListener? _listener;
+
+    // Dictionary of queues by client IP
+    private readonly ConcurrentDictionary<string, Channel<(TcpClient client, string rawRequest)>> _clientQueues = new();
 
     // Redirect URLs
     private const string PortalLoginPage = "/portal/login";
@@ -35,35 +40,84 @@ public class HttpServer
             while (true)
             {
                 var client = await _listener.AcceptTcpClientAsync();
-                _ = HandleClientAsync(client); // Fire and forget to handle multiple clients
+                _ = EnqueueClientAsync(client);
             }
         });
     }
 
-    private async Task HandleClientAsync(TcpClient client)
+    private async Task EnqueueClientAsync(TcpClient client)
     {
         try
         {
             var stream = client.GetStream();
             var buffer = new byte[4096];
             int bytesRead = await stream.ReadAsync(buffer, 0, buffer.Length);
-            string rawRequest = Encoding.UTF8.GetString(buffer, 0, bytesRead);
+            if (bytesRead == 0) { client.Close(); return; }
 
+            string rawRequest = Encoding.UTF8.GetString(buffer, 0, bytesRead);
             string clientIP = ((IPEndPoint)client.Client.RemoteEndPoint!).Address.ToString();
+
+            var queue = _clientQueues.GetOrAdd(clientIP, _ =>
+            {
+                var ch = Channel.CreateUnbounded<(TcpClient, string)>();
+                var process = ProcessQueueAsync(clientIP, ch); // Starts dedicated thread for this client
+                return ch;
+            });
+
+            await queue.Writer.WriteAsync((client, rawRequest));
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"❌ Error encolando cliente: {ex.Message}");
+            client.Close();
+        }
+    }
+
+    private async Task ProcessQueueAsync(string clientIP, Channel<(TcpClient client, string rawRequest)> queue)
+    {
+        Console.WriteLine($"🧵 Hilo iniciado para IP: {clientIP}");
+
+        try
+        {
+            while (await queue.Reader.WaitToReadAsync())
+            {
+                while (queue.Reader.TryRead(out var item))
+                {
+                    await HandleClientAsync(item.client, item.rawRequest, clientIP);
+                }
+
+                // If there is no activity in 30 sec, end and clear
+                using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(30));
+                try
+                {
+                    if (!await queue.Reader.WaitToReadAsync(cts.Token))
+                        break;
+                }
+                catch (OperationCanceledException)
+                {
+                    break; // Timeout - no more requests, exit
+                }
+            }
+        }
+        finally
+        {
+            _clientQueues.TryRemove(clientIP, out _);
+            Console.WriteLine($"🧹 Hilo terminado para IP: {clientIP}");
+        }
+    }
+
+    private async Task HandleClientAsync(TcpClient client, string rawRequest, string clientIP)
+    {
+        try
+        {
             var petition = HttpPetition.Parse(rawRequest, clientIP);
 
-            string response;
-            if (petition.IsFromLocalhost())
-            {
-                response = HandleLocalRequest(petition);
-            }
-            else
-            {
-                response = await HandleRemoteRequestAsync(petition);
-            }
+            string response = petition.IsFromLocalhost()
+                ? HandleLocalRequest(petition)
+                : await HandleRemoteRequestAsync(petition);
 
             byte[] responseBytes = Encoding.UTF8.GetBytes(response);
-            await stream.WriteAsync(responseBytes, 0, responseBytes.Length);
+            await client.GetStream().WriteAsync(responseBytes, 0, responseBytes.Length);
         }
         catch (Exception ex)
         {
@@ -117,7 +171,7 @@ public class HttpServer
         var sessionDto = new SessionDto
         {
             MacAddress = macAddress,
-            Username = string.Empty // No necesario para verificación
+            Username = string.Empty // No need to provide username for this check
         };
 
         bool isAuthenticated = await _sessionManagementService.IsActiveSession(sessionDto);
