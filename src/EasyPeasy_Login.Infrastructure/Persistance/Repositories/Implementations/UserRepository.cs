@@ -1,4 +1,3 @@
-
 using EasyPeasy_Login.Domain.Exceptions;
 using EasyPeasy_Login.Shared.Constants;
 
@@ -10,6 +9,7 @@ public class UserRepository : Repository<User>, IUserRepository
     {
         if (!Items.Any())
         {
+            // Create a default admin user if no users exist
             User defaultUser = new User("admin", "$2a$11$OlHPfN0V9EcZwDZ2NhvzaOT0E6F8/EfWo2wHzJhSFEVEwd7fqBkCa"); // Username = admin, Password = admin05
             Items.Add(defaultUser);
             SaveDataAsync().Wait();
@@ -29,6 +29,7 @@ public class UserRepository : Repository<User>, IUserRepository
 
     public async Task AddAsync(User user)
     {
+        // Check if the user already exists
         if (Items.Any(u => u.Username.Equals(user.Username)))
         {
             throw new InvalidCredentialsException($"User '{user.Username}' already exists");
@@ -39,6 +40,7 @@ public class UserRepository : Repository<User>, IUserRepository
 
     public async Task UpdateAsync(User user)
     {
+        // Find the user by username and update their details
         var index = Items.FindIndex(u => u.Username == user.Username);
         if (index >= 0)
         {
@@ -53,6 +55,7 @@ public class UserRepository : Repository<User>, IUserRepository
 
     public async Task DeleteByUsernameAsync(string username)
     {
+        // Find the user by username and delete them
         var user = Items.FirstOrDefault(u => u.Username.Equals(username));
         if (user != null)
         {

@@ -33,7 +33,7 @@ public class HttpServer
     {
         _listener = new TcpListener(IPAddress.Any, 8080);
         _listener.Start();
-        Console.WriteLine("🚀 Servidor escuchando en puerto 8080...");
+        Console.WriteLine("🚀 Server listening on port 8080...");
 
         Task.Run(async () =>
         {
@@ -68,14 +68,14 @@ public class HttpServer
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"❌ Error encolando cliente: {ex.Message}");
+            Console.WriteLine($"❌ Error queuing client: {ex.Message}");
             client.Close();
         }
     }
 
     private async Task ProcessQueueAsync(string clientIP, Channel<(TcpClient client, string rawRequest)> queue)
     {
-        Console.WriteLine($"🧵 Hilo iniciado para IP: {clientIP}");
+        Console.WriteLine($"🧵 Thread started for IP: {clientIP}");
 
         try
         {
@@ -102,7 +102,7 @@ public class HttpServer
         finally
         {
             _clientQueues.TryRemove(clientIP, out _);
-            Console.WriteLine($"🧹 Hilo terminado para IP: {clientIP}");
+            Console.WriteLine($"🧹 Thread ended for IP: {clientIP}");
         }
     }
 
@@ -121,7 +121,7 @@ public class HttpServer
         }
         catch (Exception ex)
         {
-            Console.WriteLine($"❌ Error manejando cliente: {ex.Message}");
+            Console.WriteLine($"❌ Error handling client: {ex.Message}");
         }
         finally
         {

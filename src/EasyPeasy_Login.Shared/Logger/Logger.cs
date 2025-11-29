@@ -47,7 +47,7 @@ public class Logger : ILogger
         lock (_lock)
         {
             _logs.Add(entry);
-            // Keep only last 500 logs to prevent memory issues
+            // Retain only the last 500 logs to avoid memory issues
             if (_logs.Count > 500)
             {
                 _logs.RemoveAt(0);
