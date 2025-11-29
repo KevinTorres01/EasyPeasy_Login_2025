@@ -30,7 +30,20 @@ article {
 }
 
 .top-header {
-    align-items: end;
+    /* Ensure the top header (e.g. "Administrator System") is aligned to the right */
+    display: flex;
+    justify-content: flex-end;
+    align-items: flex-end;
+    padding: 0.5rem 0;
+    font-size: 1rem;
+}
+
+/* Style for the small top title shown on pages */
+.top-header .page-tittle {
+    margin: 0;
+    text-align: right;
+    font-size: 1rem;
+    color: black;
 }
 
 /* Header */
@@ -50,6 +63,16 @@ article {
 
 .header-text {
     flex: 1;
+}
+
+/* Increase spacing between the main page title and its description across pages */
+.header-text .page-title {
+    margin: 0 0 1rem 0; /* bigger bottom margin to separate from description */
+}
+
+.header-text .page-description {
+    margin-top: 0; /* keep description close to its own margin but separated by title's bottom margin */
+    color: rgb(107, 114, 128);
 }
 
 /* Remove border from page-description since it's now on wrapper */

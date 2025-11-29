@@ -43,7 +43,7 @@
 .console-icon {
     width: 18px;
     height: 18px;
-    color: var(--accent-color, #6366f1);
+    color: white;
 }
 
 .log-count {
@@ -83,7 +83,7 @@
 }
 
 .btn-console-action svg.active {
-    color: var(--accent-color, #6366f1);
+    color: white;
 }
 
 .expand-icon {
