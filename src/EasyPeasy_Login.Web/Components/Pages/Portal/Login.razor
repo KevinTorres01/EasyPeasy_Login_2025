@@ -11,6 +11,7 @@
 @inject IHttpContextAccessor HttpContextAccessor
 @inject IMacAddressResolver MacAddressResolver
 @inject NavigationManager Navigation
+@inject Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage.ProtectedSessionStorage SessionStorage
 
 
 <PageTitle>Welcome back!</PageTitle>
@@ -210,14 +211,15 @@
         {
             Console.WriteLine("Successful login");
             errorMessage = null;
+            await SessionStorage.SetAsync("IsAuthenticated", true);
+            isLoading = false;
+            Navigation.NavigateTo("/portal/success");
         }
         else
         {
             errorMessage = response.Message;
+            isLoading = false;
         }
-
-        isLoading = false;
-        Navigation.NavigateTo($"portal/success");
     }
 
     public class LoginModel
