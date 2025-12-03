@@ -20,6 +20,22 @@ public static class DnsmasqCommands
     {
         return "systemctl is-active systemd-resolved";
     }
+    
+    // Backup and configure resolv.conf for server's own DNS resolution
+    public static string BackupResolvConf()
+    {
+        return "cp /etc/resolv.conf /etc/resolv.conf.backup";
+    }
+    public static string RestoreResolvConf()
+    {
+        return "cp /etc/resolv.conf.backup /etc/resolv.conf";
+    }
+    public static string ConfigureServerDns()
+    {
+        // Configure the server to use external DNS directly (bypassing dnsmasq spoofing)
+        return "echo -e 'nameserver 8.8.8.8\\nnameserver 8.8.4.4\\nnameserver 1.1.1.1' > /etc/resolv.conf";
+    }
+    
     public static string StartDnsmasq()
     {
         return "systemctl start dnsmasq";

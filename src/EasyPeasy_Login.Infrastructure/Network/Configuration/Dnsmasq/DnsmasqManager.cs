@@ -18,17 +18,18 @@ namespace EasyPeasy_Login.Infrastructure.Network.Configuration
             this.config = networkConfiguration;
         }
 
-        private string GetDnsmasqConfig() => $@"# Interfaces
+        private string GetDnsmasqConfig() => $@"# Interfaces - ONLY listen on the captive portal interface, NOT localhost
 interface={config.Interface}
 bind-interfaces
+except-interface=lo
 
-# Listen on gateway and localhost
+# Listen ONLY on gateway IP (not on 127.0.0.1 to avoid affecting server's own DNS)
 listen-address={config.GatewayIp}
-listen-address=127.0.0.1
 
 # DNS Configuration
 no-resolv
 server=8.8.8.8
+server=8.8.4.4
 no-poll
 no-hosts
 
@@ -37,7 +38,7 @@ dhcp-range={config.DhcpRange},12h
 dhcp-option=3,{config.GatewayIp}     # Default Gateway
 dhcp-option=6,{config.GatewayIp}     # DNS Server
 
-# DNS Spoofing: All domains resolve to the gateway
+# DNS Spoofing: All domains resolve to the gateway (only affects clients on {config.Interface})
 address=/#/{config.GatewayIp}
 
 # Disable IPv6 to avoid REFUSED errors
@@ -66,6 +67,16 @@ cache-size=150
             // Prevent systemd-resolved from restarting automatically
             await executor.ExecuteCommandAsync(DnsmasqCommands.DisableCompletelyDnsSystemResolverByMasking(), ignoreErrors: true);
             await Task.Delay(2000);
+
+            // CRITICAL: Backup and configure server's DNS BEFORE starting dnsmasq
+            // This ensures the server can still resolve DNS externally
+            var resolvBackupExists = File.Exists("/etc/resolv.conf.backup");
+            if (!resolvBackupExists)
+            {
+                await executor.ExecuteCommandAsync(DnsmasqCommands.BackupResolvConf(), ignoreErrors: true);
+            }
+            await executor.ExecuteCommandAsync(DnsmasqCommands.ConfigureServerDns(), ignoreErrors: true);
+            logger.LogInfo("✅ Server DNS configured to use external resolvers (8.8.8.8, 8.8.4.4, 1.1.1.1)");
 
             string dnsmasqConfig = GetDnsmasqConfig();
 
@@ -121,6 +132,12 @@ cache-size=150
                 // Restore systemd-resolved so the system DNS works again
                 await executor.ExecuteCommandAsync(DnsmasqCommands.UnmaskDnsSystemResolver(), ignoreErrors: true);
                 await executor.ExecuteCommandAsync(DnsmasqCommands.StartDnsSystemResolver(), ignoreErrors: true);
+                // Restore the server's resolv.conf if we backed it up
+                if (File.Exists("/etc/resolv.conf.backup"))
+                {
+                    await executor.ExecuteCommandAsync(DnsmasqCommands.RestoreResolvConf(), ignoreErrors: true);
+                    logger.LogInfo("✅ Restored /etc/resolv.conf from backup");
+                }
 
                 // If we created a backup of the global dnsmasq.conf, restore it
                 if (File.Exists("/etc/dnsmasq.conf.backup"))

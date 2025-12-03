@@ -11,17 +11,20 @@ public class SessionManagementService : ISessionManagementService
     private readonly ISessionRepository _sessionRepository;
     private readonly IDeviceRepository _deviceRepository;
     private readonly IDeviceManagement _deviceManagement;
+    private readonly INetworkControlService _networkControlService;
     private readonly ILogger _logger;
 
     public SessionManagementService(
         ISessionRepository sessionRepository, 
         IDeviceRepository deviceRepository, 
         IDeviceManagement deviceManagement,
+        INetworkControlService networkControlService,
         ILogger logger)
     {
         _sessionRepository = sessionRepository;
         _deviceRepository = deviceRepository;
         _deviceManagement = deviceManagement;
+        _networkControlService = networkControlService;
         _logger = logger;
     }
 
@@ -47,6 +50,13 @@ public class SessionManagementService : ISessionManagementService
                 await _deviceManagement.AuthenticateDeviceAsync(newSession.DeviceMacAddress, createSessionRequest.IPAddress);
             }
             await _sessionRepository.AddAsync(newSession);
+            
+            // Grant internet access via iptables
+            await _networkControlService.AllowDeviceAsync(
+                createSessionRequest.MacAddress, 
+                createSessionRequest.IPAddress, 
+                createSessionRequest.Name);
+            
             _logger.LogInfo($"Session created successfully for MAC: {createSessionRequest.MacAddress}");
             return new CreateSessionResponseDto
             {
@@ -63,6 +73,9 @@ public class SessionManagementService : ISessionManagementService
         var existingSession = await _sessionRepository.GetByMacAddressAsync(session.MacAddress);
         if (existingSession != null && existingSession.Username == session.Username)
         {
+            // Revoke internet access via iptables
+            await _networkControlService.BlockDeviceAsync(session.MacAddress);
+            
             await _sessionRepository.DeleteAsync(session.MacAddress, session.Username);
             await _deviceRepository.DeleteAsync(session.MacAddress);
             _logger.LogInfo($"Session invalidated for MAC: {session.MacAddress}");
