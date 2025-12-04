@@ -5,8 +5,22 @@ namespace EasyPeasy_Login.Infrastructure.Data.Repositories;
 
 public class SessionRepository : Repository<Session>, ISessionRepository
 {
+    public SessionRepository() : base(PersistenceConstants.SessionsDataStoragePath) 
+    {
+        // Clear all sessions on startup - sessions should not persist between app restarts
+        ClearAllSessionsOnStartup();
+    }
 
-    public SessionRepository() : base(PersistenceConstants.SessionsDataStoragePath) { }
+    private void ClearAllSessionsOnStartup()
+    {
+        if (Items.Count > 0)
+        {
+            Console.WriteLine($"🧹 Clearing {Items.Count} previous session(s) on startup...");
+            Items.Clear();
+            SaveDataAsync().Wait();
+            Console.WriteLine("✅ Sessions cleared");
+        }
+    }
 
 
     public Task<Session?> GetByMacAddressAsync(string macAddress)
