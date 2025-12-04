@@ -91,6 +91,16 @@ public class AuthenticationService : IAuthenticationService
             };
         }
 
+        if (!user.IsActive)
+        {
+            _logger.LogWarning($"Authentication failed for {loginRequest.Username}: User account is inactive");
+            return new LoginResponseDto
+            {
+                Success = false,
+                Message = "User account is inactive. Please contact an administrator."
+            };
+        }
+
         await _sessionManagementService.CreateSession(new CreateSessionRequestDto
         {
             MacAddress = loginRequest.MacAddress,

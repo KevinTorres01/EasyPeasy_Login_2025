@@ -21,7 +21,7 @@ public class UserManagementService : IUserManagementService
         _sessionRepository = sessionRepository;
     }
 
-    public async Task<CreateUserResponseDto> CreateUserAsync(string username, string password)
+    public async Task<CreateUserResponseDto> CreateUserAsync(string username, string name, string password)
     {
         // Validación de entrada
         if (string.IsNullOrWhiteSpace(username))
@@ -30,6 +30,15 @@ public class UserManagementService : IUserManagementService
             {
                 Success = false,
                 Message = "Username cannot be empty."
+            };
+        }
+
+        if (string.IsNullOrWhiteSpace(name))
+        {
+            return new CreateUserResponseDto
+            {
+                Success = false,
+                Message = "Name cannot be empty."
             };
         }
 
@@ -62,7 +71,7 @@ public class UserManagementService : IUserManagementService
         }
 
         var hashedPassword = _passwordHasher.HashPassword(password);
-        var newUser = new User(username, hashedPassword);
+        var newUser = new User(username, name, hashedPassword);
 
         await _userRepository.AddAsync(newUser);
 
@@ -101,7 +110,9 @@ public class UserManagementService : IUserManagementService
         {
             userDtos.Add(new UserResponseDto
             {
-                Username = user.Username
+                Username = user.Username,
+                Name = user.Name,
+                IsActive = user.IsActive
             });
         }
         return userDtos;
@@ -114,7 +125,9 @@ public class UserManagementService : IUserManagementService
         {
             return new UserResponseDto
             {
-                Username = user.Username
+                Username = user.Username,
+                Name = user.Name,
+                IsActive = user.IsActive
             };
         }
         return null;
@@ -122,7 +135,7 @@ public class UserManagementService : IUserManagementService
 
     public async Task<UpdateUserResponseDto> UpdateUserAsync(UpdateUserRequestDto updateUserRequest)
     {
-        if (string.IsNullOrWhiteSpace(updateUserRequest.Name))
+        if (string.IsNullOrWhiteSpace(updateUserRequest.Username))
         {
             return new UpdateUserResponseDto
             {
@@ -131,7 +144,7 @@ public class UserManagementService : IUserManagementService
             };
         }
 
-        var user = await _userRepository.GetByUsernameAsync(updateUserRequest.Name);
+        var user = await _userRepository.GetByUsernameAsync(updateUserRequest.Username);
         if (user == null)
         {
             return new UpdateUserResponseDto
@@ -139,6 +152,11 @@ public class UserManagementService : IUserManagementService
                 Success = false,
                 Message = "User not found."
             };
+        }
+
+        if (!string.IsNullOrWhiteSpace(updateUserRequest.Name))
+        {
+            user.Name = updateUserRequest.Name;
         }
 
         if (!string.IsNullOrEmpty(updateUserRequest.Password))
@@ -152,6 +170,11 @@ public class UserManagementService : IUserManagementService
                 };
             }
             user.HashedPassword = _passwordHasher.HashPassword(updateUserRequest.Password);
+        }
+
+        if (updateUserRequest.IsActive.HasValue)
+        {
+            user.IsActive = updateUserRequest.IsActive.Value;
         }
         
         await _userRepository.UpdateAsync(user);

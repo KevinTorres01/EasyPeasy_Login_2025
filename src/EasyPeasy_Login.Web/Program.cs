@@ -2,6 +2,7 @@
 using EasyPeasy_Login.Application.Services;
 using EasyPeasy_Login.Application.Services.DeviceManagement;
 using EasyPeasy_Login.Application.Services.NetworkControl;
+using EasyPeasy_Login.Application.Services.UserManagement;
 using EasyPeasy_Login.Infrastructure.Data.Repositories;
 using EasyPeasy_Login.Infrastructure.Network.Configuration;
 using EasyPeasy_Login.Application.Services.SessionManagement;
@@ -45,6 +46,7 @@ builder.Services.AddScoped<IUserRepository, UserRepository>();
 builder.Services.AddScoped<IDeviceManagement, DeviceManagement>();
 builder.Services.AddScoped<ISessionManagementService, SessionManagementService>();
 builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
+builder.Services.AddScoped<IUserManagementService, UserManagementService>();
 
 builder.Services.AddScoped<IFirewallService, FirewallService>();
 builder.Services.AddScoped<INetworkControlService, NetworkControlService>();

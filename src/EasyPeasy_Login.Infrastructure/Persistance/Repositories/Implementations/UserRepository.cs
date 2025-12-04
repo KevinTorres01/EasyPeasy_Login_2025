@@ -10,7 +10,7 @@ public class UserRepository : Repository<User>, IUserRepository
         if (!Items.Any())
         {
             // Create a default admin user if no users exist
-            User defaultUser = new User("admin", "$2a$11$OlHPfN0V9EcZwDZ2NhvzaOT0E6F8/EfWo2wHzJhSFEVEwd7fqBkCa"); // Username = admin, Password = admin05
+            User defaultUser = new User("admin", "Administrator", "$2a$11$OlHPfN0V9EcZwDZ2NhvzaOT0E6F8/EfWo2wHzJhSFEVEwd7fqBkCa"); // Username = admin, Password = admin05
             Items.Add(defaultUser);
             SaveDataAsync().Wait();
         }
