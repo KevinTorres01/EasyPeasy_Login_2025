@@ -49,7 +49,7 @@ article {
 /* Header */
 .page-header-wrapper {
     padding-bottom: 1rem;
-    border-bottom: 1px solid rgb(229, 234, 241);
+    border-bottom: 1px solid #e8e8e8;
     margin-bottom: 2rem;
 }
 
@@ -72,7 +72,7 @@ article {
 
 .header-text .page-description {
     margin-top: 0; /* keep description close to its own margin but separated by title's bottom margin */
-    color: rgb(107, 114, 128);
+    color: #6b6b6b;
 }
 
 /* Remove border from page-description since it's now on wrapper */
@@ -86,7 +86,7 @@ article {
     align-items: center;
     gap: 8px;
     padding: 12px 24px;
-    background: rgb(66, 157, 237);
+    background: #5aabea;
     color: white;
     border: none;
     border-radius: 8px;
@@ -98,9 +98,9 @@ article {
 }
 
 .btn-add-user:hover {
-    background: rgb(66, 157, 237);
+    background: #4a9bda;
     transform: translateY(-1px);
-    box-shadow: 0 4px 12px rgba(65, 94, 134, 0.3);
+    box-shadow: 0 4px 12px rgba(90, 171, 234, 0.3);
 }
 
 .btn-add-user .btn-icon {
@@ -125,7 +125,7 @@ article {
 
 .stat-card {
     background: white;
-    border: 1px solid rgb(229, 234, 241);
+    border: 1px solid #e8e8e8;
     border-radius: 12px;
     padding: 1.25rem;
     text-align: center;
@@ -134,28 +134,25 @@ article {
 .stat-value {
     font-size: 28px;
     font-weight: bold;
-    color: rgb(9, 93, 208);
+    color: #5aabea;
     margin-bottom: 0.5rem;
 }
 
 .stat-value.stat-operational {
-    /*color: rgb(34, 197, 94);*/
-    color: rgb(9, 93, 208);
+    color: #5aabea;
 }
 
 .stat-value.stat-maintenance {
-    /*color: rgb(234, 179, 8);*/
-    color: rgb(9, 93, 208);
+    color: #5aabea;
 }
 
 .stat-value.stat-decommissioned {
-    /*color: rgb(239, 68, 68);*/
-    color: rgb(9, 93, 208);
+    color: #5aabea;
 }
 
 .stat-label {
     font-size: 14px;
-    color: rgb(107, 114, 128);
+    color: #6b6b6b;
     font-weight: 500;
 }
 
