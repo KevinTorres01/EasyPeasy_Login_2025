@@ -13,7 +13,7 @@ public class SessionRepository : Repository<Session>, ISessionRepository
             Items.Clear();
             SaveDataAsync().Wait();
             //anadir admin session por defecto si es necesario con mac del dispositivo actual y arreglar errores de compilacion
-            Items.Add(new Session(GetCurrentDeviceMacAddress(), "admin"));
+            Items.Add(new Session(GetCurrentDeviceMacAddress(), "admin", "127.0.0.1"));
             SaveDataAsync().Wait();
         }
     }

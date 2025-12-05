@@ -1,0 +1,456 @@
+<!DOCTYPE html>
+<html lang='es'>
+<head>
+    <meta charset='UTF-8'>
+    <meta name='viewport' content='width=device-width, initial-scale=1.0'>
+    <title>Welcome back!</title>
+    <style>
+        /* Reset global */
+        * { margin: 0; padding: 0; box-sizing: border-box; }
+        html, body { height: 100%; font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, Cantarell, sans-serif; -webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale; }
+        body { margin: 0; padding: 0; }
+
+        /* login page */
+        .login-page { min-height: 100vh; background: #6b7280; display: flex; align-items: center; justify-content: center; padding: 20px; }
+        .login-container { display: flex; width: 100%; max-width: 1100px; min-height: 600px; background: white; border-radius: 20px; overflow: hidden; box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3); }
+
+        /* left panel */
+        .left-panel { flex: 1.5; background: rgb(231,231,231); display: flex; align-items: center; justify-content: center; padding: 10px; }
+        .avatar-area { width: 100%; height: 100%; display: flex; align-items: center; justify-content: center; }
+        .avatars-svg { width: 100%; height: auto; }
+
+        /* Animaciones de avatares */
+        .pupil { transition: transform 0.08s ease-out; transform-origin: center; transform-box: fill-box; }
+        .mouth-part { transition: transform 0.2s ease-out; transform-origin: center; transform-box: fill-box; }
+
+        /* right panel */
+        .right-panel { flex: 1; display: flex; align-items: center; justify-content: center; padding: 40px; background: white; }
+        .login-card { width: 100%; max-width: 400px; }
+
+        /* crown */
+        .crown-icon { text-align: center; margin-bottom: 24px; }
+        .crown-icon svg { width: 48px; height: 48px; }
+
+        /* titles */
+        .login-title { font-size: 32px; font-weight: 700; color: #000; text-align: center; margin-bottom: 8px; }
+        .login-subtitle { font-size: 14px; color: #6b7280; text-align: center; margin-bottom: 32px; }
+
+        /* form */
+        .login-form { width: 100%; }
+        .form-group { margin-bottom: 24px; }
+        .form-label { display: block; font-size: 14px; font-weight: 600; color: #000; margin-bottom: 8px; }
+        .form-input { width: 100%; padding: 12px 0; font-size: 16px; color: #000; background: transparent; border: none; border-bottom: 2px solid #d1d5db; outline: none; transition: border-color 0.2s; }
+        .form-input:focus { border-bottom-color: #000; }
+
+        /* Password wrapper */
+        .password-wrapper { position: relative; display: flex; align-items: center; }
+        .password-toggle { position: absolute; right: 0; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; padding: 8px; opacity: 0.6; transition: opacity 0.2s; }
+        .password-toggle:hover { opacity: 1; }
+        .password-toggle svg { width: 20px; height: 20px; display: block; }
+
+        /* Checkbox */
+        .form-check { margin: 20px 0; }
+        .checkbox-container { display: flex; align-items: center; cursor: pointer; position: relative; padding-left: 28px; font-size: 14px; color: #6b7280; user-select: none; }
+        .checkbox-container input[type='checkbox'] { position: absolute; opacity: 0; cursor: pointer; height: 0; width: 0; }
+        .checkmark { position: absolute; left: 0; top: 50%; transform: translateY(-50%); height: 18px; width: 18px; border: 2px solid #d1d5db; border-radius: 4px; background: white; transition: all 0.2s; }
+        .checkbox-container:hover .checkmark { border-color: #000; }
+        .checkbox-container input:checked ~ .checkmark { background-color: #000; border-color: #000; }
+        .checkmark:after { content: ''; position: absolute; display: none; left: 5px; top: 2px; width: 4px; height: 8px; border: solid white; border-width: 0 2px 2px 0; transform: rotate(45deg); }
+        .checkbox-container input:checked ~ .checkmark:after { display: block; }
+
+        /* error message */
+        .error-message { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; border-radius: 8px; padding: 12px 16px; margin-bottom: 16px; font-size: 14px; animation: shake 0.5s; }
+        @keyframes shake { 0%, 100% { transform: translateX(0); } 25% { transform: translateX(-10px); } 75% { transform: translateX(10px); } }
+
+        /* button */
+        .btn-login { width: 100%; padding: 14px 24px; background: #000; color: white; border: none; border-radius: 8px; font-size: 16px; font-weight: 600; cursor: pointer; transition: all 0.2s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+        .btn-login:hover:not(:disabled) { background: #1a1a1a; transform: translateY(-2px); box-shadow: 0 8px 16px rgba(0, 0, 0, 0.2); }
+        .btn-login:disabled { opacity: 0.6; cursor: not-allowed; }
+
+        /* spinner */
+        .spinner { width: 16px; height: 16px; border: 2px solid rgba(255, 255, 255, 0.3); border-top-color: white; border-radius: 50%; animation: spin 0.6s linear infinite; }
+        @keyframes spin { to { transform: rotate(360deg); } }
+
+        /* Debug info */
+        .debug-info { margin-top: 24px; padding: 16px; background: #f9fafb; border-radius: 8px; text-align: center; }
+        .debug-info small { display: block; color: #6b7280; font-size: 12px; margin: 4px 0; }
+
+        /* Devil Avatar */
+        .devil-avatar { position: fixed; bottom: -250px; right: -150px; width: 200px; height: 267px; transform: rotate(-25deg); transition: all 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55); z-index: 1000; pointer-events: none; opacity: 0; }
+        .devil-avatar.show { bottom: -50px; right: -20px; opacity: 1; }
+        .devil-avatar svg { width: 100%; height: 100%; filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.3)); }
+        .devil-avatar .devil-pupil { transition: transform 0.08s ease-out; transform-origin: center; transform-box: fill-box; }
+        .devil-avatar.animating .eyebrow { animation: eyebrowBounce 0.3s ease-in-out 2; }
+        @keyframes eyebrowBounce { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .login-container { flex-direction: column; }
+            .left-panel { min-height: 200px; }
+            .login-title { font-size: 28px; }
+        }
+    </style>
+</head>
+<body>
+    <div class='login-page'>
+        <div class='login-container'>
+            <!-- Left panel -->
+            <div class='left-panel'>
+                <div class='avatar-area'>
+<svg class='avatars-svg' viewBox='0 0 520 360' xmlns='http://www.w3.org/2000/svg' aria-hidden='true'>
+  <defs id='defs2183' />
+  <rect x='0' y='0' width='520' height='360' rx='28' fill='#e8e9ed' id='rect2097' />
+  
+  <!-- Character Light Pink -->
+  <g id='g3382' transform='matrix(1.0646298,0,0,1.0646298,-3.5271752,-7.6124358)'>
+    <path d='m 287.68597,326.75569 v -160 a 67.329095,60 0 0 1 134.65819,0 v 160 z' fill='#f6a8c9' id='path2117' style='stroke-width:1.05932' />
+    <g id='g3366' transform='translate(4.6645401)' class='eye-group'>
+      <circle cx='350.35052' cy='168.00954' r='30' fill='#ffffff' id='circle2119' class='eye-white' />
+      <circle cx='350.35052' cy='168.00954' r='12' fill='#000000' id='circle2121' class='pupil' data-eye-x='350.35052' data-eye-y='168.00954' data-max-distance='15' />
+    </g>
+    <g id='g3371' class='mouth-group' style='cursor: pointer;'>
+      <ellipse style='fill:#9d5874;fill-opacity:1' id='path3102' cx='394.302' cy='233.61568' rx='13.345692' ry='17.051718' class='mouth-part' />
+      <rect x='385.38785' y='217.96416' width='8.449502' height='11.912072' rx='4.224751' fill='#ffffff' id='rect2125' style='stroke-width:1.3523' />
+      <rect x='394.87283' y='217.67513' width='8.449502' height='11.912072' rx='4.224751' fill='#ffffff' id='rect3244' style='stroke-width:1.3523' />
+      <ellipse style='fill:#f6a8c9;fill-opacity:1;stroke-width:1.40024' id='path3362' cx='393.32635' cy='215.4073' rx='13.578872' ry='7.5488887' class='mouth-part' />
+    </g>
+  </g>
+  
+  <!-- Character Dark Pink -->
+  <g id='g2685' transform='matrix(1.0646298,0,0,1.0646298,47.609429,-19.208797)'>
+    <path d='m 102.27613,124.20905 20,200' stroke='#e84e7e' stroke-width='24' stroke-linecap='round' id='path2099' />
+    <path d='m 132.70674,123.08628 c 19.75062,67.35436 39.84025,133.80623 59.18332,202.24554' stroke='#e84e7e' stroke-width='24' stroke-linecap='round' id='path2101' />
+    <rect x='23.910538' y='63.605251' width='192.60803' height='61.414959' rx='31.963337' fill='#e84e7e' id='rect2103' style='stroke-width:0.9192' />
+    <g class='eye-group'>
+      <circle cx='98.130707' cy='59.778286' fill='#ffffff' id='circle2105' style='stroke-width:0.8' r='20' class='eye-white' />
+      <circle cx='98.130707' cy='59.778286' r='8' fill='#000000' id='circle2107' class='pupil' data-eye-x='98.130707' data-eye-y='59.778286' data-max-distance='10' />
+    </g>
+    <g class='eye-group'>
+      <circle cx='142.2984' cy='59.778286' fill='#ffffff' id='circle2109' style='stroke-width:0.799996' r='20' class='eye-white' />
+      <circle cx='142.2984' cy='59.778286' r='8' fill='#000000' id='circle2111' class='pupil' data-eye-x='142.2984' data-eye-y='59.778286' data-max-distance='10' />
+    </g>
+    <g class='mouth-group'>
+      <rect x='100.42516' y='86.254997' width='39.578777' height='22.523483' rx='11.933199' fill='#9d2b48' id='rect2103-6' style='fill:#9d2b48;fill-opacity:1;stroke-width:0.9192;cursor:pointer;' class='mouth-part' />
+    </g>
+  </g>
+  
+  <!-- Character Blue -->
+  <g id='g3100' transform='matrix(1.0646298,0,0,1.0646298,35.444467,-8.0077582)'>
+    <g id='g3081'>
+      <g id='g3069' transform='translate(6.0769958)'>
+        <rect x='193.81808' y='227.29317' width='16' height='101.20235' rx='8' fill='#3b95f5' id='rect2161' style='stroke-width:1.29873' />
+        <rect x='223.81808' y='227.29317' width='16' height='101.1306' rx='8' fill='#3b95f5' id='rect2163' style='stroke-width:1.29827' />
+      </g>
+      <ellipse cx='222.89508' cy='221.67238' fill='#3b95f5' id='circle2165' rx='52.895084' ry='51.672386' style='stroke-width:1.08917' />
+      <g id='g3009' transform='translate(4.0769958)'>
+        <g class='eye-group'>
+          <circle cx='201.81808' cy='207.29317' r='16' fill='#ffffff' id='circle2167' class='eye-white' />
+          <circle cx='201.81808' cy='207.29317' r='7' fill='#000000' id='circle2169' class='pupil' data-eye-x='201.81808' data-eye-y='207.29317' data-max-distance='8' />
+        </g>
+        <g class='eye-group'>
+          <circle cx='235.81808' cy='207.29317' r='16' fill='#ffffff' id='circle2171' class='eye-white' />
+          <circle cx='235.81808' cy='207.29317' r='7' fill='#000000' id='circle2173' class='pupil' data-eye-x='235.81808' data-eye-y='207.29317' data-max-distance='8' />
+        </g>
+      </g>
+      <g class='mouth-group'>
+        <ellipse cx='222.89508' cy='239.01947' fill='#1e4f84' id='circle2175' rx='10' ry='7.78826' style='stroke-width:0.882511;cursor:pointer;' class='mouth-part' />
+      </g>
+    </g>
+  </g>
+  
+  <!-- Cloud Character -->
+  <g id='g3640' transform='matrix(1.0646298,0,0,1.0646298,-20.690737,-16.388903)'>
+    <g id='g3617'>
+      <rect x='122.05357' y='232.48087' width='11.825696' height='102.44677' rx='5.912848' fill='#80d8d0' id='rect2131' style='stroke-width:1.04005' />
+      <rect x='147.39435' y='232.48087' width='11.825696' height='100.29401' rx='5.912848' fill='#80d8d0' id='rect2133' style='stroke-width:1.02906' />
+      <g id='g3601'>
+        <ellipse style='fill:#80d8d0;fill-opacity:1;stroke-width:1.32798' id='path2920' cx='115.99339' cy='163.7532' rx='20.364809' ry='19.127666' />
+        <ellipse style='fill:#80d8d0;fill-opacity:1;stroke-width:0.917099' id='path2912' cx='142.52177' cy='197.85033' rx='45.54929' ry='45.638149' />
+        <ellipse style='fill:#80d8d0;fill-opacity:1;stroke-width:0.994873' id='path2934' cx='116.27796' cy='228.69908' rx='16.505699' ry='18.288988' />
+        <ellipse style='fill:#80d8d0;fill-opacity:1;stroke-width:1.0984' id='path2914' cx='169.74838' cy='156.09468' rx='20.43363' ry='16.408358' />
+        <ellipse style='fill:#80d8d0;fill-opacity:1;stroke-width:1.33143' id='path2918' cx='142.69867' cy='153.49768' rx='17.821531' ry='17.636358' />
+        <ellipse style='fill:#80d8d0;fill-opacity:1' id='path2922' cx='97.165756' cy='187.5155' rx='15.63154' ry='12.542776' />
+        <ellipse style='fill:#80d8d0;fill-opacity:1' id='path2924' cx='188.26883' cy='179.82002' rx='16.120945' ry='16.68458' />
+        <ellipse style='fill:#80d8d0;fill-opacity:1;stroke-width:1.13898' id='path2928' cx='188.91353' cy='214.07585' rx='17.204527' ry='22.044638' />
+        <ellipse style='fill:#80d8d0;fill-opacity:1' id='path2930' cx='169.03401' cy='236.33124' rx='15.812964' ry='17.526491' />
+        <ellipse style='fill:#80d8d0;fill-opacity:1;stroke-width:1.21242' id='path2932' cx='102.81811' cy='207.98312' rx='15.461748' ry='16.934301' />
+        <ellipse style='fill:#80d8d0;fill-opacity:1' id='path2936' cx='140.21169' cy='241.29031' rx='17.891291' ry='15.915248' />
+      </g>
+    </g>
+    <g id='g2974' transform='translate(56.498256,-2.656385)'>
+      <g class='eye-group'>
+        <circle cx='73.545761' cy='183.32991' fill='#ffffff' id='circle2149' style='stroke-width:0.892857' r='12.5' class='eye-white' />
+        <circle cx='73.545761' cy='183.32991' fill='#000000' id='circle2151' style='stroke-width:1.25' r='4.5' class='pupil' data-eye-x='73.545761' data-eye-y='183.32991' data-max-distance='6' />
+      </g>
+      <g class='eye-group'>
+        <circle cx='101.10999' cy='183.32991' fill='#ffffff' id='circle2153' style='stroke-width:0.892857' r='12.5' class='eye-white' />
+        <circle cx='101.10999' cy='183.32991' fill='#000000' id='circle2155' style='stroke-width:1.25' r='4.5' class='pupil' data-eye-x='101.10999' data-eye-y='183.32991' data-max-distance='6' />
+      </g>
+    </g>
+    <g class='mouth-group'>
+      <ellipse cx='131.6028' cy='213.79271' fill='#3e7a77' id='circle2157' rx='11.527838' ry='9.2636528' style='stroke-width:1.22883;cursor:pointer;' class='mouth-part' />
+    </g>
+  </g>
+  
+  <!-- Floor -->
+  <rect style='fill:#e8e9ed;fill-opacity:1;stroke-width:0.674335' id='rect3490' width='482.37091' height='24.073071' x='15.045849' y='325.81213' rx='0' />
+</svg>
+                </div>
+            </div>
+
+            <!-- Right panel -->
+            <div class='right-panel'>
+                <div class='login-card'>
+                    <!-- Crown -->
+                    <div class='crown-icon'><svg xmlns='http://www.w3.org/2000/svg' width='48' height='48' fill='#000000' viewBox='0 0 256 256'><path d='M239.75,90.81c0,.11,0,.21-.07.32L217,195a16,16,0,0,1-15.72,13H54.71A16,16,0,0,1,39,195L16.32,91.13c0-.11-.05-.21-.07-.32A16,16,0,0,1,44,77.39l33.67,36.29,35.8-80.29a1,1,0,0,0,0-.1,16,16,0,0,1,29.06,0,1,1,0,0,0,0,.10l35.8,80.29L212,77.39a16,16,0,0,1,27.71,13.42Z'></path></svg></div>
+
+                    <!-- Titles -->
+                    <h1 class='login-title'>Welcome back!</h1>
+                    <p class='login-subtitle'>Please enter your details</p>
+
+                    <!-- Form -->
+                    <form class='login-form' method='POST' action='/login'>
+                        <!-- Username -->
+                        <div class='form-group'>
+                            <label class='form-label'>Username</label>
+                            <input type='text' name='username' class='form-input' value='' required />
+                        </div>
+
+                        <!-- Password -->
+                        <div class='form-group'>
+                            <label class='form-label'>Password</label>
+                            <div class='password-wrapper'>
+                                <input type='password' name='password' class='form-input' id='password-input' required />
+                                <button type='button' class='password-toggle' id='password-toggle'>
+                                    <span id='eye-icon'><svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' fill='#000000' viewBox='0 0 256 256'><path d='M53.92,34.62A8,8,0,1,0,42.08,45.38L61.32,66.55C25,88.84,9.38,123.2,8.69,124.76a8,8,0,0,0,0,6.5c.35.79,8.82,19.57,27.65,38.4C61.43,194.74,93.12,208,128,208a127.11,127.11,0,0,0,52.07-10.83l22,24.21a8,8,0,1,0,11.84-10.76Zm47.33,75.84,41.67,45.85a32,32,0,0,1-41.67-45.85ZM128,192c-30.78,0-57.67-11.19-79.93-33.25A133.16,133.16,0,0,1,25,128c4.69-8.79,19.66-33.39,47.35-49.38l18,19.75a48,48,0,0,0,63.66,70l14.73,16.2A112,112,0,0,1,128,192Zm6-95.43a8,8,0,0,1,3-15.72,48.16,48.16,0,0,1,38.77,42.64,8,8,0,0,1-7.22,8.71,6.39,6.39,0,0,1-.75,0,8,8,0,0,1-8-7.26A32.09,32.09,0,0,0,134,96.57Zm113.28,34.69c-.42.94-10.55,23.37-33.36,43.8a8,8,0,1,1-10.67-11.92A132.77,132.77,0,0,0,231.05,128a133.15,133.15,0,0,0-23.12-30.77C185.67,75.19,158.78,64,128,64a118.37,118.37,0,0,0-19.36,1.57A8,8,0,1,1,106,49.79,134,134,0,0,1,128,48c34.88,0,66.57,13.26,91.66,38.35,18.83,18.83,27.3,37.62,27.65,38.41A8,8,0,0,1,247.31,131.26Z'></path></svg></span>
+                                </button>
+                            </div>
+                        </div>
+
+                        <!-- Checkbox -->
+                        <div class='form-check'>
+                            <label class='checkbox-container'>
+                                <input type='checkbox' name='acceptTerms'  required />
+                                <span class='checkmark'></span>
+                                <span>I accept the terms and conditions</span>
+                            </label>
+                        </div>
+
+                        <!-- Login button -->
+                        <button type='submit' class='btn-login' id='login-button'>
+                            <span>Log in</span>
+                        </button>
+                    </form>
+
+                    <!-- Debug -->
+                    <div class='debug-info'>
+                        <small>Debug: admin / admin05</small>
+                        <small>IP: 192.168.1.100</small>
+                        <small>MAC: AA:BB:CC:DD:EE:FF</small>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Devil Avatar -->
+<div class='devil-avatar' id='devil-avatar'>
+    <svg viewBox='0 0 150 200' xmlns='http://www.w3.org/2000/svg'>
+        <title>Avatar Diablito</title>
+        <!-- Horns -->
+        <g id='g3824'>
+            <path style='fill:#000000;fill-opacity:1;stroke-width:1.23808' d='m 87.706782,63.292266 10.397679,20.11743 C 125.92939,70.260826 138.51835,66.310436 137.91524,36.239027 118.35193,59.211966 114.07259,60.916166 87.706782,63.292266 Z' id='path3820' />
+            <path style='fill:#000000;fill-opacity:1;stroke-width:1.23808' d='M 62.227783,63.292265 51.830104,83.409695 C 24.005167,70.260825 11.416215,66.310435 12.019323,36.239028 31.582629,59.211965 35.861969,60.916165 62.227783,63.292265 Z' id='path3611' />
+        </g>
+        <!-- Body -->
+        <g id='g3172' transform='matrix(1.081278,0,0,1,-5.419754,0)'>
+            <path d='M 29.344465,200.14964 V 85.149639 a 45,45 0 0 1 89.999995,0 V 200.14964 Z' id='cuerpo' fill='#bb313e' />
+            <circle cx='74.344467' cy='85.149635' r='45' id='cabeza' fill='#bb313e' />
+        </g>
+        <!-- Mouth -->
+        <g id='g3858'>
+            <ellipse style='fill:#000000;fill-opacity:1;stroke-width:1.03436' id='path524' cx='74.967285' cy='111.61536' rx='16.336103' ry='19.894257' />
+            <path d='m 77.817891,111.35063 3.809972,10 3.809973,-10 z' id='colmillo-derecho' style='fill:#ffffff;stroke-width:1.12694' />
+            <path d='m 64.467588,111.49911 3.809972,10 3.809973,-10 z' id='path3219' style='fill:#ffffff;stroke-width:1.12694' />
+            <ellipse style='fill:#bb313e;fill-opacity:1;stroke-width:0.907986' id='path524-7' cx='74.967285' cy='100.69851' rx='17.840643' ry='14.037249' />
+        </g>
+        <!-- Left eye -->
+        <g id='g3180' transform='translate(-4.903507)'>
+            <circle id='ojo-izquierdo-blanco' fill='#ffffff' cx='63.001976' cy='86.149635' r='15' />
+            <circle id='pupila-izquierda' fill='#000000' cx='63.001976' cy='86.149635' r='10' class='devil-pupil' data-eye-x='63.001976' data-eye-y='86.149635' data-max-distance='4' />
+        </g>
+        <!-- Right eye -->
+        <g id='g3184' transform='translate(-1.165882)'>
+            <circle id='ojo-derecho-blanco' fill='#ffffff' cx='93.001976' cy='86.149635' r='15' />
+            <circle id='pupila-derecha' fill='#000000' cx='93.001976' cy='86.149635' r='10' class='devil-pupil' data-eye-x='93.001976' data-eye-y='86.149635' data-max-distance='4' />
+        </g>
+        <!-- Eyebrows -->
+        <g id='eyebrows-group' transform='translate(-1.0346954)'>
+            <path d='m 43.476274,68.182202 27.656891,5.537892' id='ceja-izquierda' stroke='#000000' stroke-width='6' fill='none' stroke-linecap='round' class='eyebrow' />
+            <path d='M 108.52768,67.773076 80.87079,73.310968' id='ceja-derecha' stroke='#000000' stroke-width='6' fill='none' stroke-linecap='round' class='eyebrow' />
+        </g>
+    </svg>
+</div>
+
+    <script>
+
+// Password toggle
+const passwordInput = document.getElementById('password-input');
+const passwordToggle = document.getElementById('password-toggle');
+const eyeIcon = document.getElementById('eye-icon');
+let showPassword = false;
+
+const eyeSvg = "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' fill='#000000' viewBox='0 0 256 256'><path d='M247.31,124.76c-.35-.79-8.82-19.58-27.65-38.41C194.57,61.26,162.88,48,128,48S61.43,61.26,36.34,86.35C17.51,105.18,9,124,8.69,124.76a8,8,0,0,0,0,6.5c.35.79,8.82,19.57,27.65,38.4C61.43,194.74,93.12,208,128,208s66.57-13.26,91.66-38.34c18.83-18.83,27.3-37.61,27.65-38.4A8,8,0,0,0,247.31,124.76ZM128,192c-30.78,0-57.67-11.19-79.93-33.25A133.47,133.47,0,0,1,25,128,133.33,133.33,0,0,1,48.07,97.25C70.33,75.19,97.22,64,128,64s57.67,11.19,79.93,33.25A133.46,133.46,0,0,1,231.05,128C223.84,141.46,192.43,192,128,192Zm0-112a48,48,0,1,0,48,48A48.05,48.05,0,0,0,128,80Zm0,80a32,32,0,1,1,32-32A32,32,0,0,1,128,160Z'></path></svg>";
+const eyeSlashSvg = "<svg xmlns='http://www.w3.org/2000/svg' width='20' height='20' fill='#000000' viewBox='0 0 256 256'><path d='M53.92,34.62A8,8,0,1,0,42.08,45.38L61.32,66.55C25,88.84,9.38,123.2,8.69,124.76a8,8,0,0,0,0,6.5c.35.79,8.82,19.57,27.65,38.4C61.43,194.74,93.12,208,128,208a127.11,127.11,0,0,0,52.07-10.83l22,24.21a8,8,0,1,0,11.84-10.76Zm47.33,75.84,41.67,45.85a32,32,0,0,1-41.67-45.85ZM128,192c-30.78,0-57.67-11.19-79.93-33.25A133.16,133.16,0,0,1,25,128c4.69-8.79,19.66-33.39,47.35-49.38l18,19.75a48,48,0,0,0,63.66,70l14.73,16.2A112,112,0,0,1,128,192Zm6-95.43a8,8,0,0,1,3-15.72,48.16,48.16,0,0,1,38.77,42.64,8,8,0,0,1-7.22,8.71,6.39,6.39,0,0,1-.75,0,8,8,0,0,1-8-7.26A32.09,32.09,0,0,0,134,96.57Zm113.28,34.69c-.42.94-10.55,23.37-33.36,43.8a8,8,0,1,1-10.67-11.92A132.77,132.77,0,0,0,231.05,128a133.15,133.15,0,0,0-23.12-30.77C185.67,75.19,158.78,64,128,64a118.37,118.37,0,0,0-19.36,1.57A8,8,0,1,1,106,49.79,134,134,0,0,1,128,48c34.88,0,66.57,13.26,91.66,38.35,18.83,18.83,27.3,37.62,27.65,38.41A8,8,0,0,1,247.31,131.26Z'></path></svg>";
+
+passwordToggle.addEventListener('click', () => {
+    showPassword = !showPassword;
+    passwordInput.type = showPassword ? 'text' : 'password';
+    eyeIcon.innerHTML = showPassword ? eyeSvg : eyeSlashSvg;
+});
+
+// Avatar animations
+const loginPage = document.querySelector('.login-page');
+const svg = document.querySelector('.avatars-svg');
+const pupils = svg.querySelectorAll('.pupil');
+const mouthGroups = svg.querySelectorAll('.mouth-group');
+const loginButton = document.getElementById('login-button');
+
+let currentPupilScale = 1.0;
+let lastMouseX = 0;
+let lastMouseY = 0;
+
+// Eye movement logic
+const moveEyes = (e) => {
+    const svgRect = svg.getBoundingClientRect();
+    const mouseX = e.clientX - svgRect.left;
+    const mouseY = e.clientY - svgRect.top;
+    const viewBox = svg.viewBox.baseVal;
+    const scaleX = viewBox.width / svgRect.width;
+    const scaleY = viewBox.height / svgRect.height;
+    const svgMouseX = mouseX * scaleX;
+    const svgMouseY = mouseY * scaleY;
+
+    pupils.forEach(pupil => {
+        const eyeX = parseFloat(pupil.getAttribute('data-eye-x'));
+        const eyeY = parseFloat(pupil.getAttribute('data-eye-y'));
+        const maxDistance = parseFloat(pupil.getAttribute('data-max-distance'));
+        const dx = svgMouseX - eyeX;
+        const dy = svgMouseY - eyeY;
+        const angle = Math.atan2(dy, dx);
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        const moveDistance = distance > 50 ? maxDistance : Math.min(maxDistance, distance / 15);
+        const offsetX = Math.cos(angle) * moveDistance;
+        const offsetY = Math.sin(angle) * moveDistance;
+        
+        const scale = currentPupilScale;
+        pupil.setAttribute('transform', `scale(${scale}) translate(${offsetX/scale}, ${offsetY/scale})`);
+    });
+};
+
+loginPage.addEventListener('mousemove', (e) => {
+    lastMouseX = e.clientX;
+    lastMouseY = e.clientY;
+    moveEyes(e);
+});
+
+// Pupils scale logic
+const setPupilScale = (scaleValue) => {
+    currentPupilScale = scaleValue;
+    const fakeEvent = new MouseEvent('mousemove', { bubbles: true, cancelable: true, view: window, clientX: lastMouseX, clientY: lastMouseY });
+    loginPage.dispatchEvent(fakeEvent);
+};
+
+// Scale pupils on login button hover
+if (loginButton) {
+    loginButton.addEventListener('mouseenter', () => setPupilScale(1.4));
+    loginButton.addEventListener('mouseleave', () => setPupilScale(1.0));
+}
+
+// Scale pupils on password input focus
+if (passwordInput) {
+    passwordInput.addEventListener('focus', () => setPupilScale(1.2));
+    passwordInput.addEventListener('blur', () => setPupilScale(1.0));
+}
+
+// Mouth animation (open on hover)
+mouthGroups.forEach(group => {
+    const parts = group.querySelectorAll('.mouth-part');
+    const interactiveElement = group.querySelector('[style*="cursor:pointer"]') || group;
+
+    interactiveElement.addEventListener('mouseenter', () => {
+        parts.forEach(part => {
+            part.style.transform = 'scale(1.5)';
+        });
+    });
+
+    interactiveElement.addEventListener('mouseleave', () => {
+        parts.forEach(part => {
+            part.style.transform = 'scale(1)';
+        });
+    });
+});
+
+// Devil Avatar Logic
+const devilAvatar = document.getElementById('devil-avatar');
+const checkbox = document.querySelector('input[name="acceptTerms"]');
+
+if (checkbox && devilAvatar) {
+    checkbox.addEventListener('change', (e) => {
+        if (e.target.checked) {
+            // Show devil
+            devilAvatar.classList.add('show');
+            
+            // Wait for devil to appear
+            setTimeout(() => {
+                devilAvatar.classList.add('animating');
+                
+                // Wait for eyebrow animation
+                setTimeout(() => {
+                    devilAvatar.classList.remove('animating');
+                    
+                    // Wait a moment before hiding
+                    setTimeout(() => {
+                        devilAvatar.classList.remove('show');
+                    }, 100);
+                }, 1000);
+            }, 800);
+        }
+    });
+}
+
+// Devil eyes tracking
+const devilSvg = devilAvatar ? devilAvatar.querySelector('svg') : null;
+const devilPupils = devilSvg ? devilSvg.querySelectorAll('.devil-pupil') : [];
+
+document.addEventListener('mousemove', (e) => {
+    if (!devilAvatar || !devilAvatar.classList.contains('show')) return;
+    if (!devilSvg || devilPupils.length === 0) return;
+    
+    const svgRect = devilSvg.getBoundingClientRect();
+    const mouseX = e.clientX - svgRect.left;
+    const mouseY = e.clientY - svgRect.top;
+    const viewBox = devilSvg.viewBox.baseVal;
+    const scaleX = viewBox.width / svgRect.width;
+    const scaleY = viewBox.height / svgRect.height;
+    const svgMouseX = mouseX * scaleX;
+    const svgMouseY = mouseY * scaleY;
+
+    devilPupils.forEach(pupil => {
+        const eyeX = parseFloat(pupil.getAttribute('data-eye-x'));
+        const eyeY = parseFloat(pupil.getAttribute('data-eye-y'));
+        const maxDistance = parseFloat(pupil.getAttribute('data-max-distance'));
+        const dx = svgMouseX - eyeX;
+        const dy = svgMouseY - eyeY;
+        const angle = Math.atan2(dy, dx);
+        const distance = Math.sqrt(dx * dx + dy * dy);
+        const moveDistance = distance > 50 ? maxDistance : Math.min(maxDistance, distance / 15);
+        const offsetX = Math.cos(angle) * moveDistance;
+        const offsetY = Math.sin(angle) * moveDistance;
+        pupil.setAttribute('transform', `translate(${offsetX}, ${offsetY})`);
+    });
+});
+
+    </script>
+</body>
+</html>
