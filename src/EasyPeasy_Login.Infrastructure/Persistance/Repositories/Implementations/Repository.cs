@@ -1,13 +1,16 @@
 using System.Text.Json;
+using EasyPeasy_Login.Domain.Interfaces;
 
-namespace EasyPeasy_Login.Infrastructure.Data;
+namespace EasyPeasy_Login.Infrastructure.Data.Repositories;
 
-public abstract class Repository<T> where T : class
+/// <summary>
+/// Base repository with thread-safe JSON file persistence.
+/// </summary>
+public abstract class Repository<T> : IRepository<T> where T : class
 {
     protected readonly string FilePath;
-    protected List<T> Items = new();
-    private readonly SemaphoreSlim _semaphore = new(1, 1);
-    private readonly object _lock = new();
+    protected readonly List<T> Items = new();
+    private readonly SemaphoreSlim _fileSemaphore = new(1, 1);
 
     protected Repository(string filePath)
     {
@@ -20,121 +23,53 @@ public abstract class Repository<T> where T : class
     {
         var directory = Path.GetDirectoryName(FilePath);
         if (!string.IsNullOrEmpty(directory) && !Directory.Exists(directory))
-        {
             Directory.CreateDirectory(directory);
-        }
 
-        if (!File.Exists(FilePath))
-        {
+        if (!File.Exists(FilePath) || string.IsNullOrWhiteSpace(File.ReadAllText(FilePath)))
             File.WriteAllText(FilePath, "[]");
-        }
-        else
-        {
-            // Check if file is empty or contains only whitespace
-            var content = File.ReadAllText(FilePath);
-            if (string.IsNullOrWhiteSpace(content))
-            {
-                File.WriteAllText(FilePath, "[]");
-            }
-        }
     }
 
-    protected void LoadData()
+    private void LoadData()
     {
-        if (File.Exists(FilePath))
+        try
         {
             var json = File.ReadAllText(FilePath);
-            try
-            {
-                Items = JsonSerializer.Deserialize<List<T>>(json) ?? new List<T>();
-            }
-            catch(Exception e)
-            {
-                System.Console.WriteLine(e.Message);
-                Items = new List<T>();
-            }
+            var items = JsonSerializer.Deserialize<List<T>>(json);
+            if (items != null)
+                Items.AddRange(items);
+        }
+        catch (Exception e)
+        {
+            Console.WriteLine($"Error loading {typeof(T).Name}: {e.Message}");
         }
     }
 
-    /// <summary>
-    /// Thread-safe read operation
-    /// </summary>
-    protected List<T> GetItemsSnapshot()
-    {
-        lock (_lock)
-        {
-            return Items.ToList();
-        }
-    }
+    #region IRepository<T> Implementation
 
-    /// <summary>
-    /// Thread-safe add operation
-    /// </summary>
-    protected void AddItemSafe(T item)
-    {
-        lock (_lock)
-        {
-            Items.Add(item);
-        }
-    }
+    public Task<IEnumerable<T>> GetAllAsync()
+        => Task.FromResult<IEnumerable<T>>(Items.ToList());
 
-    /// <summary>
-    /// Thread-safe remove operation
-    /// </summary>
-    protected bool RemoveItemSafe(T item)
-    {
-        lock (_lock)
-        {
-            return Items.Remove(item);
-        }
-    }
+    public abstract Task AddAsync(T entity);
 
-    /// <summary>
-    /// Thread-safe update operation
-    /// </summary>
-    protected void UpdateItemSafe(int index, T item)
-    {
-        lock (_lock)
-        {
-            if (index >= 0 && index < Items.Count)
-            {
-                Items[index] = item;
-            }
-        }
-    }
+    public abstract Task UpdateAsync(T entity);
 
-    /// <summary>
-    /// Thread-safe find index operation
-    /// </summary>
-    protected int FindIndexSafe(Predicate<T> predicate)
-    {
-        lock (_lock)
-        {
-            return Items.FindIndex(predicate);
-        }
-    }
+    #endregion
+
+    #region Persistence
 
     protected async Task SaveDataAsync()
     {
-        await _semaphore.WaitAsync();
+        await _fileSemaphore.WaitAsync();
         try
         {
-            List<T> itemsToSave;
-            lock (_lock)
-            {
-                itemsToSave = Items.ToList();
-            }
-
-            var json = JsonSerializer.Serialize(itemsToSave, new JsonSerializerOptions
-            {
-                WriteIndented = true
-            });
-
+            var json = JsonSerializer.Serialize(Items, new JsonSerializerOptions { WriteIndented = true });
             await File.WriteAllTextAsync(FilePath, json);
         }
         finally
         {
-            _semaphore.Release();
+            _fileSemaphore.Release();
         }
     }
+
+    #endregion
 }

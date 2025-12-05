@@ -1,73 +1,65 @@
 using EasyPeasy_Login.Domain.Interfaces;
 using EasyPeasy_Login.Shared.Constants;
+using System.Net.NetworkInformation;
 
 namespace EasyPeasy_Login.Infrastructure.Data.Repositories;
 
 public class SessionRepository : Repository<Session>, ISessionRepository
 {
-    public SessionRepository() : base(PersistenceConstants.SessionsDataStoragePath) 
+    public SessionRepository() : base(PersistenceConstants.SessionsDataStoragePath)
     {
-        // Clear all sessions on startup - sessions should not persist between app restarts
-        ClearAllSessionsOnStartup();
-    }
-
-    private void ClearAllSessionsOnStartup()
-    {
-        if (Items.Count > 0)
+        if (Items.Any())
         {
-            Console.WriteLine($"🧹 Clearing {Items.Count} previous session(s) on startup...");
             Items.Clear();
             SaveDataAsync().Wait();
-            Console.WriteLine("✅ Sessions cleared");
+            //anadir admin session por defecto si es necesario con mac del dispositivo actual y arreglar errores de compilacion
+            Items.Add(new Session(GetCurrentDeviceMacAddress(), "admin"));
+            SaveDataAsync().Wait();
         }
     }
 
+    private string GetCurrentDeviceMacAddress()
+    {
+        var nic = NetworkInterface.GetAllNetworkInterfaces()
+            .FirstOrDefault(n => n.OperationalStatus == OperationalStatus.Up 
+                              && n.NetworkInterfaceType != NetworkInterfaceType.Loopback);
+
+        return nic?.GetPhysicalAddress().ToString().ToLower() 
+               ?? "00:00:00:00:00:00";
+    }
 
     public Task<Session?> GetByMacAddressAsync(string macAddress)
-    {
-        return Task.FromResult(Items.FirstOrDefault(s => s.DeviceMacAddress == macAddress));
-    }
+        => Task.FromResult(Items.FirstOrDefault(s => s.DeviceMacAddress == macAddress));
 
     public Task<IEnumerable<Session>> GetByUsernameAsync(string username)
+        => Task.FromResult<IEnumerable<Session>>(Items.Where(s => s.Username == username));
+
+    public override async Task AddAsync(Session entity)
     {
-        return Task.FromResult<IEnumerable<Session>>(Items.Where(s => s.Username == username));
+        if (Items.Any(s => s.DeviceMacAddress == entity.DeviceMacAddress && s.Username == entity.Username))
+            throw new InvalidOperationException("Session already exists for this device and user.");
+
+        Items.Add(entity);
+        await SaveDataAsync();
     }
 
-    public Task DeleteAsync(string macAddress, string username)
+    public override async Task UpdateAsync(Session entity)
+    {
+        var index = Items.FindIndex(s => s.DeviceMacAddress == entity.DeviceMacAddress && s.Username == entity.Username);
+        if (index < 0)
+            throw new KeyNotFoundException("Session not found for update.");
+
+        Items[index] = entity;
+        await SaveDataAsync();
+    }
+
+    public async Task DeleteAsync(string macAddress, string username)
     {
         var session = Items.FirstOrDefault(s => s.DeviceMacAddress == macAddress && s.Username == username);
         if (session != null)
         {
             Items.Remove(session);
-            return SaveDataAsync();
+            await SaveDataAsync();
         }
-        return Task.CompletedTask;
-    }
-
-    public Task<IEnumerable<Session>> GetAllAsync()
-    {
-       return Task.FromResult<IEnumerable<Session>>(Items);
-    }
-
-    public Task AddAsync(Session entity)
-    {
-        var existingSession = Items.FirstOrDefault(s => s.DeviceMacAddress == entity.DeviceMacAddress && s.Username == entity.Username);
-        if (existingSession != null)
-        {
-            throw new InvalidOperationException("Session already exists for this device and user.");
-        }
-        Items.Add(entity);
-        return SaveDataAsync();
-    }
-
-    public Task UpdateAsync(Session entity)
-    {
-        var index = Items.FindIndex(s => s.DeviceMacAddress == entity.DeviceMacAddress && s.Username == entity.Username);
-        if (index >= 0)
-        {
-            Items[index] = entity;
-            return SaveDataAsync();
-        }
-        throw new KeyNotFoundException("Session not found for update.");
     }
 }

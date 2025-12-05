@@ -1,4 +1,3 @@
-
 using EasyPeasy_Login.Domain.Interfaces;
 using EasyPeasy_Login.Shared.Constants;
 
@@ -8,51 +7,38 @@ public class DeviceRepository : Repository<Device>, IDeviceRepository
 {
     public DeviceRepository() : base(PersistenceConstants.DevicesDataStoragePath) { }
 
-    public Task AddAsync(Device entity)
+    public Task<Device?> GetByMacAddressAsync(string macAddress)
+        => Task.FromResult(Items.FirstOrDefault(d => d.MacAddress == macAddress));
+
+    public Task<Device?> GetByIpAddressAsync(string ipAddress)
+        => Task.FromResult(Items.FirstOrDefault(d => d.IPAddress == ipAddress));
+
+    public override async Task AddAsync(Device entity)
     {
-        var existingDevice = Items.FirstOrDefault(d => d.MacAddress == entity.MacAddress);
-        if (existingDevice != null)
-        {
+        if (Items.Any(d => d.MacAddress == entity.MacAddress))
             throw new InvalidOperationException("Device with this MAC address already exists.");
-        }
+
         Items.Add(entity);
-        return SaveDataAsync();
+        await SaveDataAsync();
     }
 
-    public Task DeleteAsync(string macAddress)
+    public override async Task UpdateAsync(Device entity)
+    {
+        var index = Items.FindIndex(d => d.MacAddress == entity.MacAddress);
+        if (index < 0)
+            throw new KeyNotFoundException("Device not found for update.");
+
+        Items[index] = entity;
+        await SaveDataAsync();
+    }
+
+    public async Task DeleteAsync(string macAddress)
     {
         var device = Items.FirstOrDefault(d => d.MacAddress == macAddress);
         if (device != null)
         {
             Items.Remove(device);
-            return SaveDataAsync();
+            await SaveDataAsync();
         }
-        return Task.CompletedTask;
-    }
-
-    public Task<IEnumerable<Device>> GetAllAsync()
-    {
-        return Task.FromResult<IEnumerable<Device>>(Items);
-    }
-
-    public Task<Device?> GetByIpAddressAsync(string ipAddress)
-    {
-        return Task.FromResult(Items.FirstOrDefault(d => d.IPAddress == ipAddress));
-    }
-
-    public Task<Device?> GetByMacAddressAsync(string macAddress)
-    {
-        return Task.FromResult(Items.FirstOrDefault(d => d.MacAddress == macAddress));
-    }
-
-    public Task UpdateAsync(Device entity)
-    {
-        var index = Items.FindIndex(d => d.MacAddress == entity.MacAddress);
-        if (index >= 0)
-        {
-            Items[index] = entity;
-            return SaveDataAsync();
-        }
-        throw new KeyNotFoundException("Device not found for update.");
     }
 }
