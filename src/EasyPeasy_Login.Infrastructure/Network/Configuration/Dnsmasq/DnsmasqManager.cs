@@ -123,15 +123,31 @@ cache-size=150
         {
             logger.LogInfo("🛑 Stopping dnsmasq and restoring configuration...");
 
-            // Try to stop dnsmasq first (ignore errors if it's not running)
-            await executor.ExecuteCommandAsync(DnsmasqCommands.StopDnsmasq(), ignoreErrors: true);
-            await Task.Delay(1000);
-
             try
             {
-                // Restore systemd-resolved so the system DNS works again
+                // Stop dnsmasq first (ignore errors if it's not running)
+                await executor.ExecuteCommandAsync(DnsmasqCommands.StopDnsmasq(), ignoreErrors: true);
+                await Task.Delay(1000);
+
+                // Remove our captive portal configuration files
+                await executor.ExecuteCommandAsync(DnsmasqCommands.RemoveConfigOrLogFile("/etc/dnsmasq.d/captive-portal.conf"), ignoreErrors: true);
+                await executor.ExecuteCommandAsync(DnsmasqCommands.RemoveConfigOrLogFile("/var/log/dnsmasq-captive.log"), ignoreErrors: true);
+
+                // Restore the global dnsmasq.conf if we backed it up
+                if (File.Exists("/etc/dnsmasq.conf.backup"))
+                {
+                    await executor.ExecuteCommandAsync(DnsmasqCommands.RestoreConfigFileFromBackup(), ignoreErrors: true);
+                    logger.LogInfo("✅ Restored /etc/dnsmasq.conf from backup");
+                }
+
+                // Unmask and start systemd-resolved (CRITICAL: must always execute)
                 await executor.ExecuteCommandAsync(DnsmasqCommands.UnmaskDnsSystemResolver(), ignoreErrors: true);
+                await Task.Delay(500);
                 await executor.ExecuteCommandAsync(DnsmasqCommands.StartDnsSystemResolver(), ignoreErrors: true);
+                await Task.Delay(1000);
+                
+                logger.LogInfo("✅ systemd-resolved restarted");
+
                 // Restore the server's resolv.conf if we backed it up
                 if (File.Exists("/etc/resolv.conf.backup"))
                 {
@@ -139,32 +155,15 @@ cache-size=150
                     logger.LogInfo("✅ Restored /etc/resolv.conf from backup");
                 }
 
-                // If we created a backup of the global dnsmasq.conf, restore it
-                if (File.Exists("/etc/dnsmasq.conf.backup"))
-                {
-                    await executor.ExecuteCommandAsync(DnsmasqCommands.RestoreConfigFileFromBackup(), ignoreErrors: true);
-                    logger.LogInfo("Restored /etc/dnsmasq.conf from /etc/dnsmasq.conf.backup");
-
-                    // Remove our captive config and logs
-                    await executor.ExecuteCommandAsync(DnsmasqCommands.RemoveConfigOrLogFile("/etc/dnsmasq.d/captive-portal.conf"), ignoreErrors: true);
-                    await executor.ExecuteCommandAsync(DnsmasqCommands.RemoveConfigOrLogFile("/var/log/dnsmasq-captive.log"), ignoreErrors: true);
-
-                    // Restart dnsmasq so it loads the restored config
-                    await executor.ExecuteCommandAsync(DnsmasqCommands.RestartDnsmasq(), ignoreErrors: true);
-
-                    return new ExecutionResult(0, "dnsmasq stopped and configuration restored.", string.Empty);
-                }
-
-                // No backup found: just remove our captive files and leave dnsmasq stopped
-                await executor.ExecuteCommandAsync(DnsmasqCommands.RemoveConfigOrLogFile("/etc/dnsmasq.d/captive-portal.conf"), ignoreErrors: true);
-                await executor.ExecuteCommandAsync(DnsmasqCommands.RemoveConfigOrLogFile("/var/log/dnsmasq-captive.log"), ignoreErrors: true);
-
-                logger.LogInfo("dnsmasq stopped. No backup found to restore.");
-                return new ExecutionResult(0, "dnsmasq stopped. No backup found to restore.", string.Empty);
+                logger.LogInfo("✅ dnsmasq stopped and configuration restored.");
+                return new ExecutionResult(0, "dnsmasq stopped and configuration restored.", string.Empty);
             }
             catch (Exception ex)
             {
-                logger.LogError($"Failed to stop/restore dnsmasq: {ex.Message}");
+                logger.LogError($"❌ Failed to stop/restore dnsmasq: {ex.Message}");
+                // Even if there's an error, try to restore systemd-resolved
+                await executor.ExecuteCommandAsync(DnsmasqCommands.UnmaskDnsSystemResolver(), ignoreErrors: true);
+                await executor.ExecuteCommandAsync(DnsmasqCommands.StartDnsSystemResolver(), ignoreErrors: true);
                 return new ExecutionResult(1, "Failed to stop/restore dnsmasq", ex.Message);
             }
         }

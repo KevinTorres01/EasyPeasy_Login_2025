@@ -7,5 +7,6 @@ public interface IDeviceManagement
     Task AuthenticateDeviceAsync(string macAddress, string ipAddress);
     Task DisconnectDeviceAsync(string macAddress);
     Task<IEnumerable<Device>> GetAllDevicesAsync();
+    Task<IEnumerable<DeviceSessionDto>> GetConnectedDevicesAsync();
 
 }

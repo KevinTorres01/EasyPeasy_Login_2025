@@ -163,40 +163,42 @@
     border-radius: 6px;
     cursor: pointer;
     transition: all 0.2s ease;
+    opacity: 1 !important;
 }
 
 .btn-action svg {
     width: 16px;
     height: 16px;
+    opacity: 1 !important;
 }
 
 .btn-edit {
-    background: #5aabea;
-    color: white;
+    background: #5aabea !important;
+    color: white !important;
 }
 
 .btn-edit:hover {
-    background: #4a9bda;
+    background: #4a9bda !important;
     transform: scale(1.05);
 }
 
 .btn-delete {
-    background: #a5e0e0;
-    color: white;
+    background: #c94a4a !important;
+    color: white !important;
 }
 
 .btn-delete:hover {
-    background: #8dd0d0;
+    background: #b93a3a !important;
     transform: scale(1.05);
 }
 
 .btn-toggle {
-    background: #e85a8f;
-    color: white;
+    background: #e85a8f !important;
+    color: white !important;
 }
 
 .btn-toggle:hover {
-    background: #d84a7f;
+    background: #d84a7f !important;
     transform: scale(1.05);
 }
 

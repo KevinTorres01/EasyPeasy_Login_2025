@@ -1,6 +1,6 @@
 /* Network Control Page Styles */
 .network-control-page {
-    padding: 0 24px 24px;
+    min-height: 100vh;
 }
 
 .network-content {
@@ -104,31 +104,33 @@
     font-weight: 600;
     cursor: pointer;
     transition: all 0.2s ease;
+    opacity: 1 !important;
 }
 
 .btn-action .btn-icon {
     width: 20px;
     height: 20px;
+    opacity: 1 !important;
 }
 
 .btn-start {
-    background: #80d8d0;
-    color: white;
+    background: #80d8d0 !important;
+    color: white !important;
 }
 
 .btn-start:hover:not(:disabled) {
-    background: rgb(60,190,179);
+    background: rgb(60,190,179) !important;
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgb(32,102,94);
 }
 
 .btn-stop {
-    background: rgb(231, 73, 124);
-    color: white;
+    background: rgb(231, 73, 124) !important;
+    color: white !important;
 }
 
 .btn-stop:hover:not(:disabled) {
-    background: rgb(212, 28,89);
+    background: rgb(212, 28,89) !important;
     transform: translateY(-2px);
     box-shadow: 0 4px 12px rgb(132,17,55);
 }

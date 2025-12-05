@@ -44,7 +44,7 @@ public class SessionManagementService : ISessionManagementService
         }
         else
         {
-            var newSession = new Session(createSessionRequest.MacAddress, createSessionRequest.Name);
+            var newSession = new Session(createSessionRequest.MacAddress, createSessionRequest.Name, createSessionRequest.IPAddress);
             if (await _deviceRepository.GetByMacAddressAsync(createSessionRequest.MacAddress) == null)
             {
                 await _deviceManagement.AuthenticateDeviceAsync(newSession.DeviceMacAddress, createSessionRequest.IPAddress);

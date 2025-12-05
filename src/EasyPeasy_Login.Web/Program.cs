@@ -27,29 +27,34 @@ builder.Services.AddSingleton<INetworkConfiguration, NetworkConfiguration>();
 // Register logger as singleton to share logs across all components
 builder.Services.AddSingleton<EasyPeasy_Login.Shared.ILogger, Logger>();
 
-// Register presentation services
-builder.Services.AddScoped<ICommandExecutor, CommandExecutor>();
-builder.Services.AddScoped<IDnsmasqManager, DnsmasqManager>();
-builder.Services.AddScoped<IHostapdManager, HostapdManager>();
-builder.Services.AddScoped<ICaptivePortalControlManager, CaptivePortalControlManager>();
-builder.Services.AddScoped<INetworkManager, NetworkManager>();
-builder.Services.AddScoped<INetworkOrchestrator, NetworkOrchestrator>();
-builder.Services.AddScoped<IPasswordHasher, PasswordHasher>();
+// Register infrastructure services as Singleton - they don't have per-request state
+builder.Services.AddSingleton<ICommandExecutor, CommandExecutor>();
+builder.Services.AddSingleton<IDnsmasqManager, DnsmasqManager>();
+builder.Services.AddSingleton<IHostapdManager, HostapdManager>();
+builder.Services.AddSingleton<ICaptivePortalControlManager, CaptivePortalControlManager>();
+builder.Services.AddSingleton<INetworkManager, NetworkManager>();
+
+// Network orchestration and control - Singleton because they manage global system state (iptables, network config)
+builder.Services.AddSingleton<INetworkOrchestrator, NetworkOrchestrator>();
+builder.Services.AddSingleton<IFirewallService, FirewallService>();
+builder.Services.AddSingleton<INetworkControlService, NetworkControlService>();
+
+// Utilities
+builder.Services.AddSingleton<IPasswordHasher, PasswordHasher>();
 builder.Services.AddScoped<IMacAddressResolver, MacAddressResolver>();
 
 builder.Services.AddHttpContextAccessor();
 
-builder.Services.AddScoped<ISessionRepository, SessionRepository>();
-builder.Services.AddScoped<IDeviceRepository, DeviceRepository>();
-builder.Services.AddScoped<IUserRepository, UserRepository>();
+// Repositories as Singleton - they manage in-memory data that should persist during app lifetime
+builder.Services.AddSingleton<ISessionRepository, SessionRepository>();
+builder.Services.AddSingleton<IDeviceRepository, DeviceRepository>();
+builder.Services.AddSingleton<IUserRepository, UserRepository>();
 
+// Application services - Scoped because they handle business logic per request
 builder.Services.AddScoped<IDeviceManagement, DeviceManagement>();
 builder.Services.AddScoped<ISessionManagementService, SessionManagementService>();
 builder.Services.AddScoped<IAuthenticationService, AuthenticationService>();
 builder.Services.AddScoped<IUserManagementService, UserManagementService>();
-
-builder.Services.AddScoped<IFirewallService, FirewallService>();
-builder.Services.AddScoped<INetworkControlService, NetworkControlService>();
 
 var app = builder.Build();
 
