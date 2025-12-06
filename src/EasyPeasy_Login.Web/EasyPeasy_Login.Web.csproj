@@ -4,16 +4,13 @@
     <ProjectReference Include="..\EasyPeasy_Login.Application\EasyPeasy_Login.Application.csproj" />
     <ProjectReference Include="..\EasyPeasy_Login.Infrastructure\EasyPeasy_Login.Infrastructure.csproj" />
     <ProjectReference Include="..\EasyPeasy_Login.Shared\EasyPeasy_Login.Shared.csproj" />
+    <ProjectReference Include="..\EasyPeasy_Login.Server\EasyPeasy_Login.Server.csproj" />
   </ItemGroup>
 
   <PropertyGroup>
-    <TargetFramework>net9.0</TargetFramework>
+    <TargetFramework>net10.0</TargetFramework>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
   </PropertyGroup>
-
-  <ItemGroup>
-    <PackageReference Include="Microsoft.AspNetCore.Components.Web" Version="9.0.*" />
-  </ItemGroup>
 
 </Project>

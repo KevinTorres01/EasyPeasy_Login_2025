@@ -94,4 +94,29 @@ public class SessionManagementService : ISessionManagementService
         var existingSession = await _sessionRepository.GetByMacAddressAsync(session.MacAddress);
         return existingSession != null;
     }
+
+    public async Task<SessionDto?> GetSessionByMacAsync(string macAddress)
+    {
+        var session = await _sessionRepository.GetByMacAddressAsync(macAddress);
+        if (session == null)
+            return null;
+
+        return new SessionDto
+        {
+            MacAddress = session.DeviceMacAddress,
+            Username = session.Username,
+            IpAddress = session.IpAddress
+        };
+    }
+
+    public async Task<IEnumerable<SessionDto>> GetAllSessionsAsync()
+    {
+        var sessions = await _sessionRepository.GetAllAsync();
+        return sessions.Select(s => new SessionDto
+        {
+            MacAddress = s.DeviceMacAddress,
+            Username = s.Username,
+            IpAddress = s.IpAddress
+        });
+    }
 }

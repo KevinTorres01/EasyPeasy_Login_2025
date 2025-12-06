@@ -419,6 +419,8 @@ public static class DashboardPage
     </div>
 
     <script>
+        const API_BASE = 'http://localhost:8080/api';
+
         // Counter animation for statistics
         function animateCounter(element, target) {
             const duration = 1000; // 1 second
@@ -446,27 +448,54 @@ public static class DashboardPage
             requestAnimationFrame(update);
         }
 
-        // Initialize counters when page loads
-        window.addEventListener('DOMContentLoaded', function() {
-            const usersConnected = document.getElementById('users-connected');
-            const activeSessions = document.getElementById('active-sessions');
-            const registeredUsers = document.getElementById('registered-users');
-            
-            // Get the target values from the text content
-            const usersTarget = parseInt(usersConnected.textContent) || 0;
-            const sessionsTarget = parseInt(activeSessions.textContent) || 0;
-            const registeredTarget = parseInt(registeredUsers.textContent) || 0;
-            
-            // Animate each counter with slight delay
-            setTimeout(() => animateCounter(usersConnected, usersTarget), 100);
-            setTimeout(() => animateCounter(activeSessions, sessionsTarget), 200);
-            setTimeout(() => animateCounter(registeredUsers, registeredTarget), 300);
-        });
+        // Load statistics from API
+        async function loadStatistics() {
+            try {
+                const [devicesResponse, sessionsResponse, usersResponse] = await Promise.all([
+                    fetch(`${API_BASE}/device`),
+                    fetch(`${API_BASE}/session`),
+                    fetch(`${API_BASE}/users`)
+                ]);
+
+                const devices = devicesResponse.ok ? await devicesResponse.json() : [];
+                const sessions = sessionsResponse.ok ? await sessionsResponse.json() : [];
+                const users = usersResponse.ok ? await usersResponse.json() : [];
+
+                const usersConnected = devices.length;
+                const activeSessions = sessions.length;
+                const registeredUsers = users.length;
+
+                // Update elements
+                const usersConnectedEl = document.getElementById('users-connected');
+                const activeSessionsEl = document.getElementById('active-sessions');
+                const registeredUsersEl = document.getElementById('registered-users');
+
+                // Animate counters
+                setTimeout(() => animateCounter(usersConnectedEl, usersConnected), 100);
+                setTimeout(() => animateCounter(activeSessionsEl, activeSessions), 200);
+                setTimeout(() => animateCounter(registeredUsersEl, registeredUsers), 300);
+            } catch (error) {
+                console.error('Error loading statistics:', error);
+                // Use default values from HTML if API fails
+                const usersConnected = document.getElementById('users-connected');
+                const activeSessions = document.getElementById('active-sessions');
+                const registeredUsers = document.getElementById('registered-users');
+                
+                const usersTarget = parseInt(usersConnected.textContent) || 0;
+                const sessionsTarget = parseInt(activeSessions.textContent) || 0;
+                const registeredTarget = parseInt(registeredUsers.textContent) || 0;
+                
+                setTimeout(() => animateCounter(usersConnected, usersTarget), 100);
+                setTimeout(() => animateCounter(activeSessions, sessionsTarget), 200);
+                setTimeout(() => animateCounter(registeredUsers, registeredTarget), 300);
+            }
+        }
+
+        // Initialize when page loads
+        window.addEventListener('DOMContentLoaded', loadStatistics);
 
         // Auto-refresh stats every 30 seconds
-        setInterval(function() {
-            window.location.reload();
-        }, 30000);
+        setInterval(loadStatistics, 30000);
     </script>
 </body>
 </html>";

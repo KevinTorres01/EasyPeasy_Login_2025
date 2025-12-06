@@ -160,7 +160,10 @@ namespace EasyPeasy_Login.Server.HtmlPages
             html.AppendLine("                    <p class='login-subtitle'>Please enter your details</p>");
             html.AppendLine("");
             html.AppendLine("                    <!-- Form -->");
-            html.AppendLine("                    <form class='login-form' method='POST' action='/login'>");
+            html.AppendLine("                    <form class='login-form' method='POST' action='/portal/login'>");
+            html.AppendLine($"                        <!-- Hidden fields -->");
+            html.AppendLine($"                        <input type='hidden' name='client_mac' value='{EscapeHtml(clientMac)}' />");
+            html.AppendLine("");
             html.AppendLine("                        <!-- Username -->");
             html.AppendLine("                        <div class='form-group'>");
             html.AppendLine("                            <label class='form-label'>Username</label>");

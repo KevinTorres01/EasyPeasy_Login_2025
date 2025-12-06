@@ -689,62 +689,7 @@ public static class UserManagementPage
 </head>
 <body>
     <div class='page'>
-        <!-- Sidebar -->
-        <div class='sidebar'>
-            <div class='top-row ps-3 navbar navbar-dark'>
-                <div class='container-fluid'>
-                    <div class='navbar-brand'>
-                        <img src='{LOGO_SRC}' alt='EasyPeasy Logo' class='brand-logo'>
-                    </div>
-                </div>
-            </div>
-            <div class='nav-scrollable'>
-                <nav class='nav flex-column'>
-                    <div class='nav-item'>
-                        <a href='#'>
-                            <svg class='nav-icon' viewBox='0 0 256 256' fill='currentColor'>
-                                <path d='M104,40H56A16,16,0,0,0,40,56v48a16,16,0,0,0,16,16h48a16,16,0,0,0,16-16V56A16,16,0,0,0,104,40Zm0,64H56V56h48v48Zm96-64H152a16,16,0,0,0-16,16v48a16,16,0,0,0,16,16h48a16,16,0,0,0,16-16V56A16,16,0,0,0,200,40Zm0,64H152V56h48v48Zm-96,32H56a16,16,0,0,0-16,16v48a16,16,0,0,0,16,16h48a16,16,0,0,0,16-16V152A16,16,0,0,0,104,136Zm0,64H56V152h48v48Zm96-64H152a16,16,0,0,0-16,16v48a16,16,0,0,0,16,16h48a16,16,0,0,0,16-16V152A16,16,0,0,0,200,136Zm0,64H152V152h48v48Z'/>
-                            </svg>
-                            Dashboard
-                        </a>
-                    </div>
-                    <div class='nav-item'>
-                        <a href='#' class='active'>
-                            <svg class='nav-icon' viewBox='0 0 256 256' fill='currentColor'>
-                                <path d='M117.25,157.92a60,60,0,1,0-66.5,0A95.83,95.83,0,0,0,3.53,195.63a8,8,0,1,0,13.4,8.74,80,80,0,0,1,134.14,0,8,8,0,0,0,13.4-8.74A95.83,95.83,0,0,0,117.25,157.92ZM40,108a44,44,0,1,1,44,44A44.05,44.05,0,0,1,40,108Zm210.14,98.7a8,8,0,0,1-11.07-2.33A79.83,79.83,0,0,0,172,168a8,8,0,0,1,0-16,44,44,0,1,0-16.34-84.87,8,8,0,1,1-5.94-14.85,60,60,0,0,1,55.53,105.64,95.83,95.83,0,0,1,47.22,37.71A8,8,0,0,1,250.14,206.7Z'/>
-                            </svg>
-                            User Accounts
-                        </a>
-                    </div>
-                    <div class='nav-item'>
-                        <a href='#'>
-                            <svg class='nav-icon' viewBox='0 0 256 256' fill='currentColor'>
-                                <path d='M224,72H208V64a24,24,0,0,0-24-24H40A24,24,0,0,0,16,64v96a24,24,0,0,0,24,24H152v8a24,24,0,0,0,24,24h48a24,24,0,0,0,24-24V96A24,24,0,0,0,224,72ZM40,168a8,8,0,0,1-8-8V64a8,8,0,0,1,8-8H184a8,8,0,0,1,8,8v8H176a24,24,0,0,0-24,24v72Zm192,24a8,8,0,0,1-8,8H176a8,8,0,0,1-8-8V96a8,8,0,0,1,8-8h48a8,8,0,0,1,8,8Zm-96,16a8,8,0,0,1-8,8H88a8,8,0,0,1,0-16h40A8,8,0,0,1,136,208Zm80-96a8,8,0,0,1-8,8H192a8,8,0,0,1,0-16h16A8,8,0,0,1,216,112Z'/>
-                            </svg>
-                            Devices
-                        </a>
-                    </div>
-                    <div class='nav-item'>
-                        <a href='#'>
-                            <svg class='nav-icon' viewBox='0 0 256 256' fill='currentColor'>
-                                <path d='M247.31,124.76c-.35-.79-8.82-19.58-27.65-38.41C194.57,61.26,162.88,48,128,48S61.43,61.26,36.34,86.35C17.51,105.18,9,124,8.69,124.76a8,8,0,0,0,0,6.5c.35.79,8.82,19.57,27.65,38.4C61.43,194.74,93.12,208,128,208s66.57-13.26,91.66-38.34c18.83-18.83,27.3-37.61,27.65-38.4A8,8,0,0,0,247.31,124.76ZM128,192c-30.78,0-57.67-11.19-79.93-33.25A133.47,133.47,0,0,1,25,128,133.33,133.33,0,0,1,48.07,97.25C70.33,75.19,97.22,64,128,64s57.67,11.19,79.93,33.25A133.46,133.46,0,0,1,231.05,128C223.84,141.46,192.43,192,128,192Zm0-112a48,48,0,1,0,48,48A48.05,48.05,0,0,0,128,80Zm0,80a32,32,0,1,1,32-32A32,32,0,0,1,128,160Z'/>
-                                <circle cx='128' cy='128' r='24'/>
-                            </svg>
-                            Network Control
-                        </a>
-                    </div>
-                    <div class='nav-item'>
-                        <a href='#'>
-                            <svg class='nav-icon' viewBox='0 0 256 256' fill='currentColor'>
-                                <path d='M128,80a48,48,0,1,0,48,48A48.05,48.05,0,0,0,128,80Zm0,80a32,32,0,1,1,32-32A32,32,0,0,1,128,160Zm88-29.84q.06-2.16,0-4.32l14.92-18.64a8,8,0,0,0,1.48-7.06,107.21,107.21,0,0,0-10.88-26.25,8,8,0,0,0-6-3.93l-23.72-2.64q-1.48-1.56-3-3L186,40.54a8,8,0,0,0-3.94-6,107.71,107.71,0,0,0-26.25-10.87,8,8,0,0,0-7.06,1.49L130.16,40Q128,40,125.84,40L107.2,25.11a8,8,0,0,0-7.06-1.48A107.6,107.6,0,0,0,73.89,34.51a8,8,0,0,0-3.93,6L67.32,64.27q-1.56,1.49-3,3L40.54,70a8,8,0,0,0-6,3.94,107.71,107.71,0,0,0-10.87,26.25,8,8,0,0,0,1.49,7.06L40,125.84Q40,128,40,130.16L25.11,148.8a8,8,0,0,0-1.48,7.06,107.21,107.21,0,0,0,10.88,26.25,8,8,0,0,0,6,3.93l23.72,2.64q1.49,1.56,3,3L70,215.46a8,8,0,0,0,3.94,6,107.71,107.71,0,0,0,26.25,10.87,8,8,0,0,0,7.06-1.49L125.84,216q2.16.06,4.32,0l18.64,14.92a8,8,0,0,0,7.06,1.48,107.21,107.21,0,0,0,26.25-10.88,8,8,0,0,0,3.93-6l2.64-23.72q1.56-1.48,3-3L215.46,186a8,8,0,0,0,6-3.94,107.71,107.71,0,0,0,10.87-26.25,8,8,0,0,0-1.49-7.06Zm-16.1-6.5a73.93,73.93,0,0,1,0,8.68,8,8,0,0,0,1.74,5.48l14.19,17.73a91.57,91.57,0,0,1-6.23,15L187,173.11a8,8,0,0,0-5.1,2.64,74.11,74.11,0,0,1-6.14,6.14,8,8,0,0,0-2.64,5.1l-2.51,22.58a91.32,91.32,0,0,1-15,6.23l-17.74-14.19a8,8,0,0,0-5-1.75h-.48a73.93,73.93,0,0,1-8.68,0,8,8,0,0,0-5.48,1.74L100.45,215.8a91.57,91.57,0,0,1-15-6.23L82.89,187a8,8,0,0,0-2.64-5.1,74.11,74.11,0,0,1-6.14-6.14,8,8,0,0,0-5.1-2.64L46.43,170.6a91.32,91.32,0,0,1-6.23-15l14.19-17.74a8,8,0,0,0,1.74-5.48,73.93,73.93,0,0,1,0-8.68,8,8,0,0,0-1.74-5.48L40.2,100.45a91.57,91.57,0,0,1,6.23-15L69,82.89a8,8,0,0,0,5.1-2.64,74.11,74.11,0,0,1,6.14-6.14A8,8,0,0,0,82.89,69L85.4,46.43a91.32,91.32,0,0,1,15-6.23l17.74,14.19a8,8,0,0,0,5.48,1.74,73.93,73.93,0,0,1,8.68,0,8,8,0,0,0,5.48-1.74L155.55,40.2a91.57,91.57,0,0,1,15,6.23L173.11,69a8,8,0,0,0,2.64,5.1,74.11,74.11,0,0,1,6.14,6.14,8,8,0,0,0,5.1,2.64l22.58,2.51a91.32,91.32,0,0,1,6.23,15l-14.19,17.74A8,8,0,0,0,199.87,123.66Z'/>
-                            </svg>
-                            Settings
-                        </a>
-                    </div>
-                    <div class='nav-spacer'></div>
-                </nav>
-            </div>
-        </div>
+        {NAV_MENU}
 
         <!-- Main Content -->
         <main>
@@ -865,70 +810,101 @@ public static class UserManagementPage
 
     <script>
         // User data store
-        let users = {USERS_DATA};
+        let users = [];
         let isEditing = false;
         let editingUsername = '';
         let deletingUsername = '';
+        const API_BASE = 'http://localhost:8080/api';
+
+        // Normalize API user shape to what the UI expects
+        function normalizeUser(u) {
+            const username = (u?.username ?? u?.userName ?? '').toString();
+            const name = (u?.name ?? u?.fullName ?? username).toString();
+            const isActive = Boolean(u?.isActive ?? u?.active ?? u?.status === 'active');
+            return { name, username, isActive };
+        }
+
+        // Load users from API
+        async function loadUsers() {
+            try {
+                const response = await fetch(`${API_BASE}/users`);
+                if (!response.ok) throw new Error('Failed to load users');
+                const data = await response.json();
+                const apiUsers = Array.isArray(data)
+                    ? data.map(normalizeUser).filter(u => u.username)
+                    : [];
+
+                // If API returns empty, fall back to bundled sample users so admin shows
+                users = apiUsers.length > 0 ? apiUsers : {USERS_DATA}.map(normalizeUser);
+                filterUsers();
+            } catch (error) {
+                console.error('Error loading users:', error);
+                alert('Failed to load users. Using offline mode.');
+                users = {USERS_DATA}.map(normalizeUser);
+                filterUsers();
+            }
+        }
 
         // Filter users
-        function filterUsers() {{
+        function filterUsers() {
             const searchTerm = document.getElementById('searchInput').value.toLowerCase();
             const statusFilter = document.getElementById('statusFilter').value;
-            
-            const filtered = users.filter(user => {{
-                const matchesSearch = user.name.toLowerCase().includes(searchTerm) || 
-                                    user.username.toLowerCase().includes(searchTerm);
-                const matchesStatus = statusFilter === 'all' || 
-                                     (statusFilter === 'active' && user.isActive) || 
-                                     (statusFilter === 'inactive' && !user.isActive);
+
+            const filtered = users.filter(user => {
+                const name = (user.name || '').toLowerCase();
+                const username = (user.username || '').toLowerCase();
+                const matchesSearch = name.includes(searchTerm) || username.includes(searchTerm);
+                const matchesStatus = statusFilter === 'all' ||
+                    (statusFilter === 'active' && user.isActive) ||
+                    (statusFilter === 'inactive' && !user.isActive);
                 return matchesSearch && matchesStatus;
-            }});
+            });
 
             renderUsers(filtered);
-        }}
+        }
 
         // Render users in table
-        function renderUsers(filteredUsers) {{
+        function renderUsers(filteredUsers) {
             const tbody = document.getElementById('usersTableBody');
-            
-            if (filteredUsers.length === 0) {{
+
+            if (filteredUsers.length === 0) {
                 tbody.innerHTML = '<tr><td colspan=""4"" class=""no-users"">No users found</td></tr>';
                 return;
-            }}
+            }
 
             tbody.innerHTML = filteredUsers.map(user => `
                 <tr>
-                    <td>${{user.name}}</td>
-                    <td>${{user.username}}</td>
+                    <td>${user.name || 'Unnamed'}</td>
+                    <td>${user.username || '—'}</td>
                     <td>
-                        <span class=""status-badge ${{user.isActive ? 'status-active' : 'status-inactive'}}"">
-                            <span class=""status-dot""></span>
-                            ${{user.isActive ? 'Active' : 'Inactive'}}
+                        <span class='status-badge ${user.isActive ? 'status-active' : 'status-inactive'}'>
+                            <span class='status-dot'></span>
+                            ${user.isActive ? 'Active' : 'Inactive'}
                         </span>
                     </td>
-                    <td class=""actions-cell"">
-                        <button class=""btn-action btn-edit"" title=""Edit user"" onclick=""openEditUserModal('${{user.username}}')"">
-                            <svg viewBox=""0 0 256 256"" fill=""currentColor"">
-                                <path d=""M227.31,73.37,182.63,28.68a16,16,0,0,0-22.63,0L36.69,152A15.86,15.86,0,0,0,32,163.31V208a16,16,0,0,0,16,16H92.69A15.86,15.86,0,0,0,104,219.31L227.31,96a16,16,0,0,0,0-22.63ZM92.69,208H48V163.31l88-88L180.69,120ZM192,108.68,147.31,64l24-24L216,84.68Z""/>
+                    <td class='actions-cell'>
+                        <button class='btn-action btn-edit' title='Edit user' onclick='openEditUserModal(""${user.username}"")'>
+                            <svg viewBox='0 0 256 256' fill='currentColor'>
+                                <path d='M227.31,73.37,182.63,28.68a16,16,0,0,0-22.63,0L36.69,152A15.86,15.86,0,0,0,32,163.31V208a16,16,0,0,0,16,16H92.69A15.86,15.86,0,0,0,104,219.31L227.31,96a16,16,0,0,0,0-22.63ZM92.69,208H48V163.31l88-88L180.69,120ZM192,108.68,147.31,64l24-24L216,84.68Z'/>
                             </svg>
                         </button>
-                        <button class=""btn-action btn-delete"" title=""Delete user"" onclick=""openDeleteModal('${{user.username}}')"">
-                            <svg viewBox=""0 0 256 256"" fill=""currentColor"">
-                                <path d=""M216,48H176V40a24,24,0,0,0-24-24H104A24,24,0,0,0,80,40v8H40a8,8,0,0,0,0,16h8V208a16,16,0,0,0,16,16H192a16,16,0,0,0,16-16V64h8a8,8,0,0,0,0-16ZM96,40a8,8,0,0,1,8-8h48a8,8,0,0,1,8,8v8H96Zm96,168H64V64H192ZM112,104v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Zm48,0v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Z""/>
+                        <button class='btn-action btn-delete' title='Delete user' onclick='openDeleteModal(""${user.username}"")'>
+                            <svg viewBox='0 0 256 256' fill='currentColor'>
+                                <path d='M216,48H176V40a24,24,0,0,0-24-24H104A24,24,0,0,0,80,40v8H40a8,8,0,0,0,0,16h8V208a16,16,0,0,0,16,16H192a16,16,0,0,0,16-16V64h8a8,8,0,0,0,0-16ZM96,40a8,8,0,0,1,8-8h48a8,8,0,0,1,8,8v8H96Zm96,168H64V64H192ZM112,104v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Zm48,0v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Z'/>
                             </svg>
                         </button>
-                        <button class=""btn-action btn-toggle"" title=""${{user.isActive ? 'Deactivate user' : 'Activate user'}}"" onclick=""toggleUserStatus('${{user.username}}')"">
-                            <svg viewBox=""0 0 256 256"" fill=""currentColor"">
-                                <path d=""M247.31,124.76c-.35-.79-8.82-19.58-27.65-38.41C194.57,61.26,162.88,48,128,48S61.43,61.26,36.34,86.35C17.51,105.18,9,124,8.69,124.76a8,8,0,0,0,0,6.5c.35.79,8.82,19.57,27.65,38.4C61.43,194.74,93.12,208,128,208s66.57-13.26,91.66-38.34c18.83-18.83,27.3-37.61,27.65-38.4A8,8,0,0,0,247.31,124.76ZM128,192c-30.78,0-57.67-11.19-79.93-33.25A133.47,133.47,0,0,1,25,128,133.33,133.33,0,0,1,48.07,97.25C70.33,75.19,97.22,64,128,64s57.67,11.19,79.93,33.25A133.46,133.46,0,0,1,231.05,128C223.84,141.46,192.43,192,128,192Zm0-112a48,48,0,1,0,48,48A48.05,48.05,0,0,0,128,80Zm0,80a32,32,0,1,1,32-32A32,32,0,0,1,128,160Z""/>
+                        <button class='btn-action btn-toggle' title='${user.isActive ? 'Deactivate user' : 'Activate user'}' onclick='toggleUserStatus(""${user.username}"")'>
+                            <svg viewBox='0 0 256 256' fill='currentColor'>
+                                <path d='M247.31,124.76c-.35-.79-8.82-19.58-27.65-38.41C194.57,61.26,162.88,48,128,48S61.43,61.26,36.34,86.35C17.51,105.18,9,124,8.69,124.76a8,8,0,0,0,0,6.5c.35.79,8.82,19.57,27.65,38.4C61.43,194.74,93.12,208,128,208s66.57-13.26,91.66-38.34c18.83-18.83,27.3-37.61,27.65-38.4A8,8,0,0,0,247.31,124.76ZM128,192c-30.78,0-57.67-11.19-79.93-33.25A133.47,133.47,0,0,1,25,128,133.33,133.33,0,0,1,48.07,97.25C70.33,75.19,97.22,64,128,64s57.67,11.19,79.93,33.25A133.46,133.46,0,0,1,231.05,128C223.84,141.46,192.43,192,128,192Zm0-112a48,48,0,1,0,48,48A48.05,48.05,0,0,0,128,80Zm0,80a32,32,0,1,1,32-32A32,32,0,0,1,128,160Z'/>
                             </svg>
                         </button>
                     </td>
                 </tr>
             `).join('');
-        }}
+        }
 
         // Open add user modal
-        function openAddUserModal() {{
+        function openAddUserModal() {
             isEditing = false;
             document.getElementById('modalTitle').textContent = 'Add New User';
             document.getElementById('btnSave').textContent = 'Add User';
@@ -939,10 +915,10 @@ public static class UserManagementPage
             document.getElementById('inputUsername').disabled = false;
             document.getElementById('passwordGroup').style.display = 'block';
             document.getElementById('userModal').classList.remove('hidden');
-        }}
+        }
 
         // Open edit user modal
-        function openEditUserModal(username) {{
+        function openEditUserModal(username) {
             isEditing = true;
             editingUsername = username;
             const user = users.find(u => u.username === username);
@@ -957,82 +933,131 @@ public static class UserManagementPage
             document.getElementById('inputUsername').disabled = true;
             document.getElementById('passwordGroup').style.display = 'none';
             document.getElementById('userModal').classList.remove('hidden');
-        }}
+        }
 
         // Close user modal
-        function closeUserModal() {{
+        function closeUserModal() {
             document.getElementById('userModal').classList.add('hidden');
             editingUsername = '';
-        }}
+        }
 
         // Save user
-        function saveUser() {{
+        async function saveUser() {
             const name = document.getElementById('inputName').value.trim();
             const username = document.getElementById('inputUsername').value.trim();
             const password = document.getElementById('inputPassword').value;
             const isActive = document.getElementById('inputStatus').value === 'true';
 
-            if (!name || !username) {{
+            if (!name || !username) {
                 alert('Please fill in all required fields');
                 return;
-            }}
+            }
 
-            if (!isEditing && !password) {{
+            if (!isEditing && !password) {
                 alert('Password is required for new users');
                 return;
-            }}
+            }
 
-            if (isEditing) {{
-                // Update existing user
-                const user = users.find(u => u.username === editingUsername);
-                if (user) {{
-                    user.name = name;
-                    user.isActive = isActive;
-                }}
-            }} else {{
-                // Add new user
-                if (users.some(u => u.username === username)) {{
-                    alert('Username already exists');
-                    return;
-                }}
-                users.push({{ name, username, isActive }});
-            }}
+            try {
+                if (isEditing) {
+                    // Update existing user via API
+                    const response = await fetch(`${API_BASE}/users/${editingUsername}`, {
+                        method: 'PUT',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ name, isActive, password: password || undefined })
+                    });
 
-            closeUserModal();
-            filterUsers();
-        }}
+                    if (!response.ok) {
+                        const error = await response.json();
+                        throw new Error(error.error || 'Failed to update user');
+                    }
+
+                    alert('User updated successfully');
+                } else {
+                    // Create new user via API
+                    const response = await fetch(`${API_BASE}/users`, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ username, name, password })
+                    });
+
+                    if (!response.ok) {
+                        const error = await response.json();
+                        throw new Error(error.error || 'Failed to create user');
+                    }
+
+                    alert('User created successfully');
+                }
+
+                closeUserModal();
+                await loadUsers();
+            } catch (error) {
+                console.error('Error saving user:', error);
+                alert(error.message || 'Failed to save user');
+            }
+        }
 
         // Open delete modal
-        function openDeleteModal(username) {{
+        function openDeleteModal(username) {
             deletingUsername = username;
             document.getElementById('deleteUsername').textContent = username;
             document.getElementById('deleteModal').classList.remove('hidden');
-        }}
+        }
 
         // Close delete modal
-        function closeDeleteModal() {{
+        function closeDeleteModal() {
             document.getElementById('deleteModal').classList.add('hidden');
             deletingUsername = '';
-        }}
+        }
 
         // Confirm delete
-        function confirmDelete() {{
-            users = users.filter(u => u.username !== deletingUsername);
-            closeDeleteModal();
-            filterUsers();
-        }}
+        async function confirmDelete() {
+            try {
+                const response = await fetch(`${API_BASE}/users/${deletingUsername}`, {
+                    method: 'DELETE'
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Failed to delete user');
+                }
+
+                alert('User deleted successfully');
+                closeDeleteModal();
+                await loadUsers();
+            } catch (error) {
+                console.error('Error deleting user:', error);
+                alert(error.message || 'Failed to delete user');
+            }
+        }
 
         // Toggle user status
-        function toggleUserStatus(username) {{
+        async function toggleUserStatus(username) {
             const user = users.find(u => u.username === username);
-            if (user) {{
-                user.isActive = !user.isActive;
-                filterUsers();
-            }}
-        }}
+            if (!user) return;
 
-        // Initialize
-        renderUsers(users);
+            try {
+                const newStatus = !user.isActive;
+                const response = await fetch(`${API_BASE}/users/${username}`, {
+                    method: 'PUT',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ name: user.name, isActive: newStatus })
+                });
+
+                if (!response.ok) {
+                    const error = await response.json();
+                    throw new Error(error.error || 'Failed to toggle user status');
+                }
+
+                await loadUsers();
+            } catch (error) {
+                console.error('Error toggling user status:', error);
+                alert(error.message || 'Failed to toggle user status');
+            }
+        }
+
+        // Initialize - Load users from API
+        loadUsers();
     </script>
 </body>
 </html>";
@@ -1106,7 +1131,7 @@ public static class UserManagementPage
         }
 
         return HTML_TEMPLATE
-            .Replace("{LOGO_SRC}", finalLogoSrc)
+            .Replace("{NAV_MENU}", NavMenuHelper.GenerateNavMenu("users", finalLogoSrc))
             .Replace("{USERS_DATA}", usersJson)
             .Replace("{USER_ROWS}", userRows);
     }

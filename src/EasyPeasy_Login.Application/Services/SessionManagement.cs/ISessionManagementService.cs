@@ -6,5 +6,6 @@ public interface ISessionManagementService
     Task<CreateSessionResponseDto> CreateSession(CreateSessionRequestDto createSessionRequest);
     Task<bool> IsActiveSession(SessionDto session);
     Task InvalidateSession(SessionDto session);
-
+    Task<SessionDto?> GetSessionByMacAsync(string macAddress);
+    Task<IEnumerable<SessionDto>> GetAllSessionsAsync();
 }

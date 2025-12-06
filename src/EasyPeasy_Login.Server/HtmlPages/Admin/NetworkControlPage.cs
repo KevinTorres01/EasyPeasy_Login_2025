@@ -890,13 +890,13 @@ public static class NetworkControlPage
                                     Network Actions
                                 </h3>
                                 <div class='action-buttons'>
-                                    <button class='btn-action btn-start' {START_DISABLED} onclick='alert(&quot;Start Network - This would call your C# backend&quot;)'>
+                                    <button class='btn-action btn-start' {START_DISABLED} onclick='startNetwork()'>
                                         <svg class='btn-icon' viewBox='0 0 256 256' fill='currentColor'>
                                             <path d='M232,128A104,104,0,1,1,128,24,104.11,104.11,0,0,1,232,128ZM128,48a80,80,0,1,0,80,80A80.09,80.09,0,0,0,128,48Zm36.44,77.66-48-32A8,8,0,0,0,104,100v64a8,8,0,0,0,12.44,6.66l48-32a8,8,0,0,0,0-13.32Z'/>
                                         </svg>
                                         <span>Start Network</span>
                                     </button>
-                                    <button class='btn-action btn-stop' {STOP_DISABLED} onclick='alert(&quot;Stop Network - This would call your C# backend&quot;)'>
+                                    <button class='btn-action btn-stop' {STOP_DISABLED} onclick='stopNetwork()'>
                                         <svg class='btn-icon' viewBox='0 0 256 256' fill='currentColor'>
                                             <path d='M128,24A104,104,0,1,0,232,128,104.11,104.11,0,0,0,128,24Zm0,192a88,88,0,1,1,88-88A88.1,88.1,0,0,1,128,216Zm24-120v64a8,8,0,0,1-16,0V96a8,8,0,0,1,16,0Zm-40,0v64a8,8,0,0,1-16,0V96a8,8,0,0,1,16,0Z'/>
                                         </svg>
@@ -1087,6 +1087,55 @@ public static class NetworkControlPage
                 eyeIcon.innerHTML = '<path d=&quot;M247.31,124.76c-.35-.79-8.82-19.58-27.65-38.41C194.57,61.26,162.88,48,128,48S61.43,61.26,36.34,86.35C17.51,105.18,9,124,8.69,124.76a8,8,0,0,0,0,6.5c.35.79,8.82,19.57,27.65,38.4C61.43,194.74,93.12,208,128,208s66.57-13.26,91.66-38.34c18.83-18.83,27.3-37.61,27.65-38.4A8,8,0,0,0,247.31,124.76ZM128,192c-30.78,0-57.67-11.19-79.93-33.25A133.47,133.47,0,0,1,25,128,133.33,133.33,0,0,1,48.07,97.25C70.33,75.19,97.22,64,128,64s57.67,11.19,79.93,33.25A133.46,133.46,0,0,1,231.05,128C223.84,141.46,192.43,192,128,192Zm0-112a48,48,0,1,0,48,48A48.05,48.05,0,0,0,128,80Zm0,80a32,32,0,1,1,32-32A32,32,0,0,1,128,160Z&quot;/>';
             }
         }
+
+        // Network control functions
+        const API_BASE = 'http://localhost:8080/api';
+
+        async function startNetwork() {{
+            if (!confirm('Are you sure you want to start the network?')) {{
+                return;
+            }}
+            
+            try {{
+                const response = await fetch(`${{API_BASE}}/network/start`, {{
+                    method: 'POST'
+                }});
+                
+                if (!response.ok) {{
+                    const error = await response.json();
+                    throw new Error(error.error || 'Failed to start network');
+                }}
+                
+                alert('Network started successfully! Please reload the page.');
+                window.location.reload();
+            }} catch (error) {{
+                console.error('Error starting network:', error);
+                alert(error.message || 'Failed to start network. This feature requires backend implementation.');
+            }}
+        }}
+
+        async function stopNetwork() {{
+            if (!confirm('Are you sure you want to stop the network? All connected users will be disconnected.')) {{
+                return;
+            }}
+            
+            try {{
+                const response = await fetch(`${{API_BASE}}/network/stop`, {{
+                    method: 'POST'
+                }});
+                
+                if (!response.ok) {{
+                    const error = await response.json();
+                    throw new Error(error.error || 'Failed to stop network');
+                }}
+                
+                alert('Network stopped successfully! Please reload the page.');
+                window.location.reload();
+            }} catch (error) {{
+                console.error('Error stopping network:', error);
+                alert(error.message || 'Failed to stop network. This feature requires backend implementation.');
+            }}
+        }}
     </script>
 </body>
 </html>";
