@@ -78,6 +78,7 @@ namespace EasyPeasy_Login.Infrastructure.Network.Configuration
 
                 await dnsmasqManager.ValidateDnsConfiguration();
 
+                config.IsNetworkActive = true;
                 ShowFinalResume();
                 return true;
             }
@@ -85,6 +86,7 @@ namespace EasyPeasy_Login.Infrastructure.Network.Configuration
             {
                 logger.LogInfo($"❌ Error configuring network: {ex.Message}");
                 logger.LogInfo($"Stack Trace: {ex.StackTrace}");
+                config.IsNetworkActive = false;
                 await RestoreConfiguration();
                 return false;
             }

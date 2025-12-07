@@ -147,7 +147,7 @@ namespace EasyPeasy_Login.Infrastructure.Network.Configuration
 
         public async Task<ExecutionResult> RestoreNetworkInterfaceConfiguration()
         {
-            logger.LogInfo("\n🔄 Restaurando configuración de red...");
+            logger.LogInfo("\n🔄 Restoring network configuration...");
             await executor.ExecuteCommandAsync(NetworkConfigurationsCommands.DisableIpPacketForwarding(), ignoreErrors:true);
 
             await executor.ExecuteCommandAsync(NetworkConfigurationsCommands.CleanIpAddressesAssociatedToAnInterface(config.Interface), ignoreErrors:true);

@@ -973,6 +973,7 @@ public static class UserManagementPage
                     }
 
                     alert('User updated successfully');
+                    window.location.reload();
                 } else {
                     // Create new user via API
                     const response = await fetch(`${API_BASE}/users`, {
@@ -987,6 +988,7 @@ public static class UserManagementPage
                     }
 
                     alert('User created successfully');
+                    window.location.reload();
                 }
 
                 closeUserModal();
@@ -1024,7 +1026,7 @@ public static class UserManagementPage
 
                 alert('User deleted successfully');
                 closeDeleteModal();
-                await loadUsers();
+                window.location.reload();
             } catch (error) {
                 console.error('Error deleting user:', error);
                 alert(error.message || 'Failed to delete user');
@@ -1049,7 +1051,7 @@ public static class UserManagementPage
                     throw new Error(error.error || 'Failed to toggle user status');
                 }
 
-                await loadUsers();
+                window.location.reload();
             } catch (error) {
                 console.error('Error toggling user status:', error);
                 alert(error.message || 'Failed to toggle user status');

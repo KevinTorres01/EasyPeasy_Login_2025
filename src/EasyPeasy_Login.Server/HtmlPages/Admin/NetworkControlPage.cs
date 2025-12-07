@@ -1034,46 +1034,98 @@ public static class NetworkControlPage
         function clearLogs(event) {{
             event.stopPropagation();
             const consoleBody = document.getElementById('consoleBody');
-            const logCount = document.getElementById('logCount');
-            
             consoleBody.innerHTML = '<div class=""empty-console"">No logs available</div>';
-            logCount.textContent = '(0 logs)';
+            updateLogCount();
         }}
 
-        function toggleAutoScroll(event) {{
+        function addLogEntry(level, message) {
+            const consoleBody = document.getElementById('consoleBody');
+            if (!consoleBody) return;
+
+            // Remove placeholder if present
+            const placeholder = consoleBody.querySelector('.empty-console');
+            if (placeholder) {
+                consoleBody.innerHTML = '';
+            }
+
+            const entry = document.createElement('div');
+            entry.className = `log-entry log-${level.toLowerCase()}`;
+
+            const timeSpan = document.createElement('span');
+            timeSpan.className = 'log-time';
+            timeSpan.textContent = `[${new Date().toLocaleTimeString()}]`;
+
+            const levelSpan = document.createElement('span');
+            levelSpan.className = 'log-level';
+            levelSpan.textContent = level.toUpperCase();
+
+            const messageSpan = document.createElement('span');
+            messageSpan.className = 'log-message';
+            messageSpan.textContent = message;
+
+            entry.appendChild(timeSpan);
+            entry.appendChild(levelSpan);
+            entry.appendChild(messageSpan);
+            consoleBody.appendChild(entry);
+
+            updateLogCount();
+            scrollToBottom();
+        }
+
+        function toggleAutoScroll(event) {
             event.stopPropagation();
             autoScroll = !autoScroll;
             const autoScrollBtn = document.getElementById('autoScrollBtn');
             const autoScrollIcon = document.getElementById('autoScrollIcon');
             
-            if (autoScroll) {{
+            if (autoScroll) {
                 autoScrollBtn.classList.add('active');
                 scrollToBottom();
-            }} else {{
+            } else {
                 autoScrollBtn.classList.remove('active');
-            }}
-        }}
+            }
+        }
 
-        function scrollToBottom() {{
-            if (autoScroll) {{
+        function scrollToBottom() {
+            if (autoScroll) {
                 const consoleBody = document.getElementById('consoleBody');
                 consoleBody.scrollTop = consoleBody.scrollHeight;
-            }}
-        }}
+            }
+        }
 
-        function updateLogCount() {{
+        async function fetchLogsAndRender(replace = false) {
+            try {
+                const response = await fetch(`${API_BASE}/network/logs`, { cache: 'no-store' });
+                const data = await response.json().catch(() => ({}));
+                if (response.ok && data.logs && Array.isArray(data.logs)) {
+                    if (replace) {
+                        const consoleBody = document.getElementById('consoleBody');
+                        if (consoleBody) {
+                            consoleBody.innerHTML = '';
+                        }
+                    }
+                    data.logs.forEach(msg => addLogEntry('info', msg));
+                }
+            } catch (err) {
+                console.error('Error fetching logs:', err);
+            }
+        }
+
+        function updateLogCount() {
             const logCount = document.getElementById('logCount');
             const logs = document.querySelectorAll('.log-entry');
-            logCount.textContent = `(${{logs.length}} logs)`;
-        }}
+            logCount.textContent = `(${logs.length} logs)`;
+        }
 
-        // Initialize log count on load
-        window.addEventListener('load', () => {{
+        // Initialize log count on load and repopulate from server
+        window.addEventListener('load', () => {
             updateLogCount();
-            if (autoScroll) {{
-                setTimeout(scrollToBottom, 100);
-            }}
-        }});
+            fetchLogsAndRender(true).then(() => {
+                if (autoScroll) {
+                    setTimeout(scrollToBottom, 100);
+                }
+            });
+        });
         
         function togglePassword() {
             const passwordInput = document.getElementById('password');
@@ -1089,53 +1141,114 @@ public static class NetworkControlPage
         }
 
         // Network control functions
-        const API_BASE = 'http://localhost:8080/api';
+        const API_BASE = `${window.location.origin}/api`;
 
-        async function startNetwork() {{
-            if (!confirm('Are you sure you want to start the network?')) {{
+        function getNetworkConfig() {
+            return {
+                interface: document.getElementById('interface')?.value.trim(),
+                ssid: document.getElementById('ssid')?.value.trim(),
+                password: document.getElementById('password')?.value.trim(),
+                port: parseInt(document.getElementById('port')?.value, 10) || undefined,
+                gateway: document.getElementById('gateway')?.value.trim(),
+                dhcpRange: document.getElementById('dhcp')?.value.trim()
+            };
+        }
+
+        async function startNetwork() {
+            if (!confirm('Are you sure you want to start the network?')) {
                 return;
-            }}
+            }
+            addLogEntry('info', 'Start network requested');
+
+            const config = getNetworkConfig();
+            if (!config.interface) {
+                alert('Please enter the WiFi interface (e.g., wlan0) before starting the network.');
+                return;
+            }
             
-            try {{
-                const response = await fetch(`${{API_BASE}}/network/start`, {{
-                    method: 'POST'
-                }});
+            try {
+                const response = await fetch(`${API_BASE}/network/start`, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(config)
+                });
+                const data = await response.json().catch(() => ({}));
                 
-                if (!response.ok) {{
-                    const error = await response.json();
-                    throw new Error(error.error || 'Failed to start network');
-                }}
+                if (!response.ok || data.success === false) {
+                    throw new Error((data && data.error) || (data && data.message) || 'Failed to start network');
+                }
                 
-                alert('Network started successfully! Please reload the page.');
-                window.location.reload();
-            }} catch (error) {{
+                if (data.logs && Array.isArray(data.logs)) {
+                    data.logs.forEach(msg => addLogEntry('info', msg));
+                } else if (data.message) {
+                    addLogEntry('info', data.message);
+                } else {
+                    addLogEntry('info', 'Network start succeeded');
+                }
+
+                addLogEntry('info', 'Start sequence running. Syncing logs...');
+                fetchLogsAndRender();
+                pollForStartCompletion();
+            } catch (error) {
                 console.error('Error starting network:', error);
-                alert(error.message || 'Failed to start network. This feature requires backend implementation.');
-            }}
-        }}
+                addLogEntry('error', error.message || 'Failed to start network');
+            }
+        }
 
-        async function stopNetwork() {{
-            if (!confirm('Are you sure you want to stop the network? All connected users will be disconnected.')) {{
+        async function stopNetwork() {
+            if (!confirm('Are you sure you want to stop the network? All connected users will be disconnected.')) {
                 return;
-            }}
+            }
+            addLogEntry('info', 'Stop network requested');
             
-            try {{
-                const response = await fetch(`${{API_BASE}}/network/stop`, {{
+            try {
+                const response = await fetch(`${API_BASE}/network/stop`, {
                     method: 'POST'
-                }});
+                });
+                const data = await response.json().catch(() => ({}));
                 
-                if (!response.ok) {{
-                    const error = await response.json();
-                    throw new Error(error.error || 'Failed to stop network');
-                }}
+                if (!response.ok || data.success === false) {
+                    throw new Error((data && data.error) || (data && data.message) || 'Failed to stop network');
+                }
                 
-                alert('Network stopped successfully! Please reload the page.');
-                window.location.reload();
-            }} catch (error) {{
+                if (data.logs && Array.isArray(data.logs)) {
+                    data.logs.forEach(msg => addLogEntry('info', msg));
+                } else if (data.message) {
+                    addLogEntry('info', data.message);
+                } else {
+                    addLogEntry('info', 'Network stopped');
+                }
+
+                addLogEntry('info', 'Stop sequence finished. Fetching latest logs...');
+                await fetchLogsAndRender();
+                setTimeout(() => window.location.reload(), 800);
+            } catch (error) {
                 console.error('Error stopping network:', error);
-                alert(error.message || 'Failed to stop network. This feature requires backend implementation.');
-            }}
-        }}
+                addLogEntry('error', error.message || 'Failed to stop network');
+            }
+        }
+
+        function pollForStartCompletion() {
+            const maxAttempts = 10;
+            let attempts = 0;
+
+            const intervalId = setInterval(async () => {
+                attempts++;
+                await fetchLogsAndRender();
+
+                const logs = Array.from(document.querySelectorAll('.log-entry .log-message')).map(el => el.textContent || '');
+                const hasDone = logs.some(msg => msg.toLowerCase().includes('network started successfully') || msg.toLowerCase().includes('network failed to start') || msg.toLowerCase().includes('network start failed'));
+
+                if (hasDone || attempts >= maxAttempts) {
+                    clearInterval(intervalId);
+                    if (hasDone) {
+                        setTimeout(() => window.location.reload(), 800);
+                    }
+                }
+            }, 2000);
+        }
     </script>
 </body>
 </html>";

@@ -3,6 +3,7 @@ using EasyPeasy_Login.Application.Services;
 using EasyPeasy_Login.Application.Services.SessionManagement;
 using EasyPeasy_Login.Application.Services.UserManagement;
 using EasyPeasy_Login.Application.Services.DeviceManagement;
+using EasyPeasy_Login.Infrastructure.Network.Configuration;
 
 namespace EasyPeasy_Login.Web.HostedServices;
 
@@ -19,13 +20,19 @@ public class CaptivePortalHostedService : IHostedService
         IAuthenticationService authenticationService,
         IUserManagementService userManagementService,
         IDeviceManagement deviceManagement,
+        INetworkOrchestrator networkOrchestrator,
+        INetworkConfiguration networkConfiguration,
+        EasyPeasy_Login.Shared.ILogger sharedLogger,
         ILogger<CaptivePortalHostedService> logger)
     {
         _httpServer = new HttpServer(
             sessionManagementService, 
             authenticationService,
             userManagementService,
-            deviceManagement);
+            deviceManagement,
+            networkOrchestrator,
+            networkConfiguration,
+            sharedLogger);
         _logger = logger;
     }
 

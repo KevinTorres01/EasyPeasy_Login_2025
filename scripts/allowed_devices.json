@@ -1,0 +1,12 @@
+[
+  {
+    "$type": "Device",
+    "IPAddress": "192.168.100.134",
+    "MacAddress": "30:fc:eb:65:33:9e"
+  },
+  {
+    "$type": "Device",
+    "IPAddress": "192.168.100.60",
+    "MacAddress": "90:61:ae:72:6a:d7"
+  }
+]

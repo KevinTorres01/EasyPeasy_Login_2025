@@ -21,14 +21,14 @@ public class NetworkController : ControllerBase
     {
         try
         {
-            _logger.LogInformation("Restaurando configuración de red...");
+            _logger.LogInformation("Restoring network configuration...");
             await _networkOrchestrator.RestoreConfiguration();
-            _logger.LogInformation("Configuración de red restaurada exitosamente");
+            _logger.LogInformation("Network configuration restored successfully");
             return Ok(new { success = true, message = "Network configuration restored successfully" });
         }
         catch (Exception ex)
         {
-            _logger.LogError(ex, "Error al restaurar la configuración de red");
+            _logger.LogError(ex, "Error restoring network configuration");
             return StatusCode(500, new { success = false, message = "Failed to restore network configuration", error = ex.Message });
         }
     }

@@ -663,57 +663,63 @@ public static class DevicesPage
         // Device data store
         let devices = [];
         let disconnectingMac = '';
-        const API_BASE = 'http://localhost:8080/api';
+        const API_BASE = `${window.location.origin}/api`;
+
+        function normalizeDevice(d) {
+            return {
+                ipAddress: (d?.ipAddress ?? '').toString(),
+                macAddress: (d?.macAddress ?? '').toString(),
+                username: (d?.username ?? '').toString()
+            };
+        }
 
         // Load devices from API
-        async function loadDevices() {{
-            try {{
-                const response = await fetch(`${{API_BASE}}/device`);
+        async function loadDevices() {
+            try {
+                const response = await fetch(`${API_BASE}/device`);
                 if (!response.ok) throw new Error('Failed to load devices');
                 const data = await response.json();
-                devices = data.map(d => ({{
-                    ipAddress: d.ipAddress,
-                    macAddress: d.macAddress,
-                    username: d.username
-                }}));
+                devices = Array.isArray(data)
+                    ? data.map(normalizeDevice)
+                    : [];
                 filterDevices();
-            }} catch (error) {{
+            } catch (error) {
                 console.error('Error loading devices:', error);
                 alert('Failed to load devices. Using offline mode.');
-                devices = {DEVICES_DATA};
+                devices = {DEVICES_DATA}.map(normalizeDevice);
                 filterDevices();
-            }}
-        }}
+            }
+        }
 
         // Filter devices
-        function filterDevices() {{
+        function filterDevices() {
             const searchTerm = document.getElementById('searchInput').value.toLowerCase();
             
-            const filtered = devices.filter(device => {{
+            const filtered = devices.filter(device => {
                 return device.username.toLowerCase().includes(searchTerm) || 
                        device.ipAddress.toLowerCase().includes(searchTerm) ||
                        device.macAddress.toLowerCase().includes(searchTerm);
-            }});
+            });
 
             renderDevices(filtered);
-        }}
+        }
 
         // Render devices in table
-        function renderDevices(filteredDevices) {{
+        function renderDevices(filteredDevices) {
             const tbody = document.getElementById('devicesTableBody');
             
-            if (filteredDevices.length === 0) {{
+            if (filteredDevices.length === 0) {
                 tbody.innerHTML = '<tr><td colspan=""4"" class=""no-devices"">No connected devices found</td></tr>';
                 return;
-            }}
+            }
 
             tbody.innerHTML = filteredDevices.map(device => `
                 <tr>
-                    <td>${{device.ipAddress}}</td>
-                    <td>${{device.macAddress}}</td>
-                    <td>${{device.username}}</td>
+                    <td>${device.ipAddress || '—'} </td>
+                    <td>${device.macAddress || '—'}</td>
+                    <td>${device.username || '—'}</td>
                     <td class=""actions-cell"">
-                        <button class=""btn-action btn-disconnect"" title=""Disconnect device"" onclick=""openDisconnectModal(&quot;${{device.macAddress}}&quot;)"">
+                        <button class=""btn-action btn-disconnect"" title=""Disconnect device"" onclick=""openDisconnectModal('${device.macAddress}')"">
                             <svg viewBox=""0 0 256 256"" fill=""currentColor"">
                                 <path d=""M216,48H176V40a24,24,0,0,0-24-24H104A24,24,0,0,0,80,40v8H40a8,8,0,0,0,0,16h8V208a16,16,0,0,0,16,16H192a16,16,0,0,0,16-16V64h8a8,8,0,0,0,0-16ZM96,40a8,8,0,0,1,8-8h48a8,8,0,0,1,8,8v8H96Zm96,168H64V64H192ZM112,104v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Zm48,0v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Z""/>
                             </svg>
@@ -721,7 +727,7 @@ public static class DevicesPage
                     </td>
                 </tr>
             `).join('');
-        }}
+        }
 
         // Refresh devices
         async function refreshDevices() {{
@@ -729,47 +735,47 @@ public static class DevicesPage
         }}
 
         // Open disconnect modal
-        function openDisconnectModal(macAddress) {{
+        function openDisconnectModal(macAddress) {
             disconnectingMac = macAddress;
             document.getElementById('disconnectMacAddress').textContent = macAddress;
             document.getElementById('disconnectModal').classList.remove('hidden');
-        }}
+        }
 
         // Close disconnect modal
-        function closeDisconnectModal() {{
+        function closeDisconnectModal() {
             document.getElementById('disconnectModal').classList.add('hidden');
             disconnectingMac = '';
-        }}
+        }
 
         // Confirm disconnect
-        async function confirmDisconnect() {{
-            try {{
+        async function confirmDisconnect() {
+            try {
                 // First delete session, then delete device
-                const sessionResponse = await fetch(`${{API_BASE}}/session/${{disconnectingMac}}`, {{
+                const sessionResponse = await fetch(`${API_BASE}/session/${disconnectingMac}`, {
                     method: 'DELETE'
-                }});
+                });
 
-                if (!sessionResponse.ok) {{
+                if (!sessionResponse.ok) {
                     console.warn('Session delete failed, continuing with device delete');
-                }}
+                }
 
-                const deviceResponse = await fetch(`${{API_BASE}}/device/${{disconnectingMac}}`, {{
+                const deviceResponse = await fetch(`${API_BASE}/device/${disconnectingMac}`, {
                     method: 'DELETE'
-                }});
+                });
 
-                if (!deviceResponse.ok) {{
+                if (!deviceResponse.ok) {
                     const error = await deviceResponse.json();
                     throw new Error(error.error || 'Failed to disconnect device');
-                }}
+                }
 
                 alert('Device disconnected successfully');
                 closeDisconnectModal();
-                await loadDevices();
-            }} catch (error) {{
+                window.location.reload();
+            } catch (error) {
                 console.error('Error disconnecting device:', error);
                 alert(error.message || 'Failed to disconnect device');
-            }}
-        }}
+            }
+        }
 
         // Initialize - Load devices from API
         loadDevices();
