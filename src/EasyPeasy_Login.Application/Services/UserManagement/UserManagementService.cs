@@ -23,7 +23,7 @@ public class UserManagementService : IUserManagementService
 
     public async Task<CreateUserResponseDto> CreateUserAsync(string username, string name, string password)
     {
-        // Validación de entrada
+        // Input Validation
         if (string.IsNullOrWhiteSpace(username))
         {
             return new CreateUserResponseDto
@@ -87,7 +87,7 @@ public class UserManagementService : IUserManagementService
         var user = await _userRepository.GetByUsernameAsync(username);
         if (user != null)
         {
-            // Eliminar todas las sesiones del usuario antes de eliminarlo
+            // Delete all user session before delete the user
             var sessions = await _sessionRepository.GetByUsernameAsync(username);
             foreach (var session in sessions)
             {

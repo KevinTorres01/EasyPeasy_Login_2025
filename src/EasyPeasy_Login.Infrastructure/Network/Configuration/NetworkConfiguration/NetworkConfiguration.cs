@@ -2,11 +2,10 @@ using EasyPeasy_Login.Shared.Constants;
 
 namespace EasyPeasy_Login.Infrastructure.Network.Configuration;
 
-/// <summary>
 /// Encapsulates network configuration state for a single captive portal session.
 /// This class is NOT static, allowing each orchestrator instance to have its own isolated state.
-/// Register as Scoped or Singleton in DI depending on your needs.
-/// </summary>
+/// Register as Singleton in DI.
+
 public class NetworkConfiguration : INetworkConfiguration
 {
     // Editable configuration (initialized from constants)
@@ -26,10 +25,8 @@ public class NetworkConfiguration : INetworkConfiguration
     // Network status
     public bool IsNetworkActive { get; set; }
 
-    /// <summary>
     /// Resets the mutable runtime state to defaults.
     /// Call this when restoring configuration.
-    /// </summary>
     public void ResetRuntimeState()
     {
         UpstreamInterface = null;
@@ -39,9 +36,7 @@ public class NetworkConfiguration : INetworkConfiguration
         IsNetworkActive = false;
     }
     
-    /// <summary>
     /// Resets all configuration to default values from NetworkConstants.
-    /// </summary>
     public void ResetToDefaults()
     {
         Interface = NetworkConstants.Interface;

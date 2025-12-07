@@ -166,53 +166,41 @@ public static class IptablesCommands
     // These rules must be inserted BEFORE the redirect rules
 
 
-    /// <summary>
     /// Redirects DNS queries from authenticated MAC to external DNS (8.8.8.8).
     /// This is needed because DHCP tells clients to use the gateway as DNS,
     /// so we must DNAT authenticated users' DNS to a real DNS server.
     /// Must be inserted at position 1 to take precedence over spoofing redirect rules.
-    /// </summary>
     public static string RedirectDnsToExternalForMac(string _interface, string macAddress, string externalDns = "8.8.8.8")
     {
         return $"iptables -t nat -I PREROUTING 1 -i {_interface} -m mac --mac-source {macAddress} -p udp --dport 53 -j DNAT --to-destination {externalDns}:53";
     }
 
-    /// <summary>
     /// Excludes an authenticated MAC from HTTP redirection (allows direct HTTP).
     /// ACCEPT in NAT means "don't modify this packet" - it goes to its original destination.
-    /// </summary>
     public static string BypassHttpRedirectForMac(string _interface, string macAddress)
     {
         return $"iptables -t nat -I PREROUTING 1 -i {_interface} -m mac --mac-source {macAddress} -p tcp --dport 80 -j ACCEPT";
     }
 
-    /// <summary>
     /// Excludes an authenticated MAC from HTTPS redirection (allows direct HTTPS).
-    /// </summary>
     public static string BypassHttpsRedirectForMac(string _interface, string macAddress)
     {
         return $"iptables -t nat -I PREROUTING 1 -i {_interface} -m mac --mac-source {macAddress} -p tcp --dport 443 -j ACCEPT";
     }
 
-    /// <summary>
     /// Removes DNS redirect rule for authenticated MAC (when revoking access).
-    /// </summary>
     public static string RemoveDnsRedirectForMac(string _interface, string macAddress, string externalDns = "8.8.8.8")
     {
         return $"iptables -t nat -D PREROUTING -i {_interface} -m mac --mac-source {macAddress} -p udp --dport 53 -j DNAT --to-destination {externalDns}:53";
     }
 
-    /// <summary>
     /// Removes HTTP bypass rule for a MAC (when revoking access).
-    /// </summary>
     public static string RemoveHttpRedirectBypassForMac(string _interface, string macAddress)
     {
         return $"iptables -t nat -D PREROUTING -i {_interface} -m mac --mac-source {macAddress} -p tcp --dport 80 -j ACCEPT";
     }
 
-    /// <summary>
     /// Removes HTTPS bypass rule for a MAC (when revoking access).
-    /// </summary>
     public static string RemoveHttpsRedirectBypassForMac(string _interface, string macAddress)
     {
         return $"iptables -t nat -D PREROUTING -i {_interface} -m mac --mac-source {macAddress} -p tcp --dport 443 -j ACCEPT";

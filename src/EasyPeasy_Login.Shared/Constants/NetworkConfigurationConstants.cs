@@ -21,6 +21,4 @@ public static class NetworkConstants
     // WiFi Credentials for guest network
     public static readonly string Ssid = "EasyPeasy_Guest";
     public static readonly string Password = "12345678"; 
-    public const int MaxConnections = 100;
-    public const int TimeoutMilliseconds = 30000;
 }
