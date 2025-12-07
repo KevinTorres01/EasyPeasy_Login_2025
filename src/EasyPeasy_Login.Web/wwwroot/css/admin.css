@@ -1,0 +1,192 @@
+.page {
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    background-color: rgb(231,231,231);
+}
+
+.main-content {
+    padding-top: 5rem;
+    padding-left: 5rem;
+    padding-right: 5rem;
+}
+
+main {
+    background-color: rgb(231,231,231);;
+    flex: 1;
+}
+
+article {
+    background-color: rgb(231,231,231);
+}
+
+.top-row {
+    background-color: #ffffff;
+    border-bottom: 1px solid white;
+    justify-content: flex-end;
+    height: 7rem;
+    display: flex;
+    align-items: center;
+}
+
+.top-header {
+    /* Ensure the top header (e.g. "Administrator System") is aligned to the right */
+    display: flex;
+    justify-content: flex-end;
+    align-items: flex-end;
+    padding: 0.5rem 0;
+    font-size: 1rem;
+}
+
+/* Style for the small top title shown on pages */
+.top-header .page-tittle {
+    margin: 0;
+    text-align: right;
+    font-size: 1rem;
+    color: black;
+}
+
+/* Header */
+.page-header-wrapper {
+    padding-bottom: 1rem;
+    border-bottom: 1px solid #e8e8e8;
+    margin-bottom: 2rem;
+}
+
+.page-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    margin-bottom: -1rem;
+    gap: 2rem;
+}
+
+.header-text {
+    flex: 1;
+}
+
+/* Increase spacing between the main page title and its description across pages */
+.header-text .page-title {
+    margin: 0 0 1rem 0; /* bigger bottom margin to separate from description */
+}
+
+.header-text .page-description {
+    margin-top: 0; /* keep description close to its own margin but separated by title's bottom margin */
+    color: #6b6b6b;
+}
+
+/* Remove border from page-description since it's now on wrapper */
+.page-description {
+    border-bottom: none !important;
+    padding-bottom: 0 !important;
+}
+
+.btn-add-user {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    padding: 12px 24px;
+    background: #5aabea;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    font-size: 15px;
+    font-weight: 600;
+    cursor: pointer;
+    transition: all 0.2s ease;
+    white-space: nowrap;
+}
+
+.btn-add-user:hover {
+    background: #4a9bda;
+    transform: translateY(-1px);
+    box-shadow: 0 4px 12px rgba(90, 171, 234, 0.3);
+}
+
+.btn-add-user .btn-icon {
+    width: 18px;
+    height: 18px;
+    filter: brightness(0) invert(1);
+}
+
+.btn-icon {
+    width: 18px;
+    height: 18px;
+    filter: brightness(0) invert(1);
+}
+
+/* Statistics Cards */
+.stats-container {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1rem;
+    margin-bottom: 1.5rem;
+}
+
+.stat-card {
+    background: white;
+    border: 1px solid #e8e8e8;
+    border-radius: 12px;
+    padding: 1.25rem;
+    text-align: center;
+}
+
+.stat-value {
+    font-size: 28px;
+    font-weight: bold;
+    color: #5aabea;
+    margin-bottom: 0.5rem;
+}
+
+.stat-value.stat-operational {
+    color: #5aabea;
+}
+
+.stat-value.stat-maintenance {
+    color: #5aabea;
+}
+
+.stat-value.stat-decommissioned {
+    color: #5aabea;
+}
+
+.stat-label {
+    font-size: 14px;
+    color: #6b6b6b;
+    font-weight: 500;
+}
+
+
+@media (max-width: 640.98px) {
+    .top-row {
+        justify-content: space-between;
+    }
+
+    .top-row ::deep a, .top-row ::deep .btn-link {
+        margin-left: 0;
+    }
+}
+
+@media (min-width: 641px) {
+    .page {
+        flex-direction: row;
+    }
+
+    .sidebar {
+        width: 250px;
+        height: 100vh;
+        position: sticky;
+        top: 0;
+    }
+
+    .top-row {
+        position: sticky;
+        top: 0;
+        z-index: 1;
+    }
+
+    .top-row, article {
+        padding-left: 2rem !important;
+        padding-right: 1.5rem !important;
+    }
+}

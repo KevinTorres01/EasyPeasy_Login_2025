@@ -1,0 +1,53 @@
+@page "/admin"
+@using EasyPeasy_Login.Infrastructure.Network.Configuration
+@layout EasyPeasy_Login.Web.Components.Layout.AdminLayout
+@rendermode InteractiveServer
+@inject INetworkOrchestrator NetworkOrchestrator
+
+<PageTitle>Admin Dashboard</PageTitle>
+
+<div class="dashboard-page">
+    <div class="top-header">
+        <h1 class="page-tittle">Administrator System</h1>
+    </div>
+
+    <!-- Header -->
+    <div class="page-header-wrapper">
+        <div class="page-header">
+            <div class="header-text">
+                <h1 class="page-title">Dashboard</h1>
+                <p class="page-description">Welcome to your Network Control System</p>
+            </div>
+            <button class="btn-add-user">
+                <svg class="btn-icon" viewBox="0 0 256 256" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                    <path
+                        d="M228,128a12,12,0,0,1-12,12H140v76a12,12,0,0,1-24,0V140H40a12,12,0,0,1,0-24h76V40a12,12,0,0,1,24,0v76h76A12,12,0,0,1,228,128Z" />
+                </svg>
+                Add User
+            </button>
+        </div>
+    </div>
+
+    <!-- Statistics Cards -->
+    <div class="stats-container">
+        <div class="stat-card">
+            <div class="stat-value"></div>
+            <div class="stat-label">Users connected</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value stat-operational"></div>
+            <div class="stat-label">Active sessions</div>
+        </div>
+        <div class="stat-card">
+            <div class="stat-value stat-maintenance"></div>
+            <div class="stat-label">Registered users</div>
+        </div>
+    </div>
+</div>
+
+@code {
+    protected override void OnInitialized()
+    {
+
+    }
+}

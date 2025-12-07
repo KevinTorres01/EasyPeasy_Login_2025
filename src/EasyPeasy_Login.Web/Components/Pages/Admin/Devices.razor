@@ -1,0 +1,158 @@
+@page "/devices"
+@using Microsoft.AspNetCore.Components.Web
+@using EasyPeasy_Login.Application.Services.DeviceManagement
+@using EasyPeasy_Login.Application.DTOs
+@layout EasyPeasy_Login.Web.Components.Layout.AdminLayout
+@rendermode InteractiveServer
+@inject IDeviceManagement DeviceManagement
+
+<PageTitle>Connected Devices Management</PageTitle>
+
+<div class="devices-page">
+    <div class="top-header">
+        <h1 class="page-tittle">Administrator System</h1>
+    </div>
+
+    <!-- Header -->
+    <div class="page-header-wrapper">
+        <div class="page-header">
+            <div class="header-text">
+                <h1 class="page-title">Connected Devices Management</h1>
+                <p class="page-description">Session Management</p>
+            </div>
+            <button class="btn-add-user" @onclick="RefreshDevices">
+                <svg class="btn-icon" viewBox="0 0 256 256" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
+                    <path d="M197.67,186.37a8,8,0,0,1,0,11.29C196.58,198.73,170.82,224,128,224c-37.39,0-64.53-22.4-80-39.85V208a8,8,0,0,1-16,0V160a8,8,0,0,1,8-8H88a8,8,0,0,1,0,16H55.44C67.76,183.35,93,208,128,208c36,0,58.14-21.46,58.36-21.68A8,8,0,0,1,197.67,186.37ZM216,40a8,8,0,0,0-8,8V71.85C192.53,54.4,165.39,32,128,32,85.18,32,59.42,57.27,58.34,58.34a8,8,0,0,0,11.3,11.34C69.86,69.46,92,48,128,48c35,0,60.24,24.65,72.56,40H168a8,8,0,0,0,0,16h48a8,8,0,0,0,8-8V48A8,8,0,0,0,216,40Z"/>
+                </svg>
+                Refresh
+            </button>
+        </div>
+    </div>
+
+    <!-- Search and Filter -->
+    <div class="search-filter-container">
+        <div class="search-box">
+            <svg class="search-icon" viewBox="0 0 256 256" fill="currentColor">
+                <path d="M229.66,218.34l-50.07-50.06a88.11,88.11,0,1,0-11.31,11.31l50.06,50.07a8,8,0,0,0,11.32-11.32ZM40,112a72,72,0,1,1,72,72A72.08,72.08,0,0,1,40,112Z"/>
+            </svg>
+            <input type="text" placeholder="Search by username, name, ..." @bind="searchTerm" @bind:event="oninput" />
+        </div>
+        <div class="filter-dropdown">
+            <select @bind="statusFilter">
+                <option value="all">Status: All</option>
+            </select>
+        </div>
+    </div>
+
+    <!-- Devices Table -->
+    <div class="devices-table-container">
+        <table class="devices-table">
+            <thead>
+                <tr>
+                    <th>IP Address</th>
+                    <th>MAC Address</th>
+                    <th>User Name</th>
+                    <th></th>
+                </tr>
+            </thead>
+            <tbody>
+                @if (filteredDevices != null && filteredDevices.Any())
+                {
+                    @foreach (var device in filteredDevices)
+                    {
+                        <tr>
+                            <td>@device.IpAddress</td>
+                            <td>@device.MacAddress</td>
+                            <td>@device.Username</td>
+                            <td class="actions-cell">
+                                <button class="btn-action btn-disconnect" title="Disconnect device" @onclick="() => ConfirmDisconnectDevice(device)">
+                                    <svg viewBox="0 0 256 256" fill="currentColor">
+                                        <path d="M216,48H176V40a24,24,0,0,0-24-24H104A24,24,0,0,0,80,40v8H40a8,8,0,0,0,0,16h8V208a16,16,0,0,0,16,16H192a16,16,0,0,0,16-16V64h8a8,8,0,0,0,0-16ZM96,40a8,8,0,0,1,8-8h48a8,8,0,0,1,8,8v8H96Zm96,168H64V64H192ZM112,104v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Zm48,0v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Z"/>
+                                    </svg>
+                                </button>
+                            </td>
+                        </tr>
+                    }
+                }
+                else
+                {
+                    <tr>
+                        <td colspan="4" class="no-devices">No connected devices found</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+<!-- Disconnect Confirmation Modal -->
+@if (showDisconnectModal)
+{
+    <div class="modal-overlay" @onclick="CloseDisconnectModal">
+        <div class="modal-content modal-delete" @onclick:stopPropagation="true">
+            <div class="modal-header">
+                <h2>Confirm Disconnect</h2>
+            </div>
+            <div class="modal-body">
+                <p>Are you sure you want to disconnect device <strong>@deviceToDisconnect?.MacAddress</strong>?</p>
+                <p class="delete-warning">The user will be logged out immediately.</p>
+            </div>
+            <div class="modal-footer">
+                <button class="btn-cancel" @onclick="CloseDisconnectModal">Cancel</button>
+                <button class="btn-delete-confirm" @onclick="DisconnectDevice">Disconnect</button>
+            </div>
+        </div>
+    </div>
+}
+
+@code {
+    private List<DeviceSessionDto> devices = new();
+    private string searchTerm = "";
+    private string statusFilter = "all";
+    private bool showDisconnectModal = false;
+    private DeviceSessionDto? deviceToDisconnect;
+
+    private IEnumerable<DeviceSessionDto> filteredDevices => devices
+        .Where(d => string.IsNullOrEmpty(searchTerm) || 
+                    d.Username.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                    d.IpAddress.Contains(searchTerm, StringComparison.OrdinalIgnoreCase) ||
+                    d.MacAddress.Contains(searchTerm, StringComparison.OrdinalIgnoreCase));
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDevices();
+    }
+
+    private async Task LoadDevices()
+    {
+        var connectedDevices = await DeviceManagement.GetConnectedDevicesAsync();
+        devices = connectedDevices.ToList();
+    }
+
+    private async Task RefreshDevices()
+    {
+        await LoadDevices();
+    }
+
+    private void ConfirmDisconnectDevice(DeviceSessionDto device)
+    {
+        deviceToDisconnect = device;
+        showDisconnectModal = true;
+    }
+
+    private void CloseDisconnectModal()
+    {
+        showDisconnectModal = false;
+        deviceToDisconnect = null;
+    }
+
+    private async Task DisconnectDevice()
+    {
+        if (deviceToDisconnect != null)
+        {
+            await DeviceManagement.DisconnectDeviceAsync(deviceToDisconnect.MacAddress);
+            await LoadDevices();
+        }
+        CloseDisconnectModal();
+    }
+}

@@ -1,0 +1,244 @@
+@page "/portal"
+@page "/portal/login"
+@rendermode InteractiveServer
+@using EasyPeasy_Login.Application.DTOs
+@using EasyPeasy_Login.Domain.Helper
+@using EasyPeasy_Login.Infrastructure.Data.Repositories
+@using EasyPeasy_Login.Web.Components.Portal
+@using EasyPeasy_Login.Application.Services
+
+@inject IAuthenticationService authenticationService
+@inject IHttpContextAccessor HttpContextAccessor
+@inject IMacAddressResolver MacAddressResolver
+@inject NavigationManager Navigation
+@inject Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage.ProtectedSessionStorage SessionStorage
+
+
+<PageTitle>Welcome back!</PageTitle>
+
+<div class="login-page">
+    <div class="login-container">
+        <!-- Left panel-->
+        <div class="left-panel">
+            <div class="avatar-area">
+                <AnimatedAvatars />
+            </div>
+        </div>
+
+        <!-- Right panel -->
+        <div class="right-panel">
+            <div class="login-card">
+                <!-- Crown -->
+                <div class="crown-icon">
+                    <img src="images/icons/crown-simple-fill.svg" alt="Crown" />
+                </div>
+
+                <!-- Tittles -->
+                <h1 class="login-title">Welcome back!</h1>
+                <p class="login-subtitle">Please enter your details</p>
+
+                <!-- Form -->
+                <EditForm Model="@loginModel" OnValidSubmit="HandleLogin" class="login-form">
+                    <!-- Username -->
+                    <div class="form-group">
+                        <label class="form-label">Username</label>
+                        <InputText @bind-Value="loginModel.Username" class="form-input" />
+                    </div>
+
+                    <!-- Password -->
+                    <div class="form-group">
+                        <label class="form-label">Password</label>
+                        <div class="password-wrapper">
+                            <InputText type="@(showPassword ? "text" : "password")" 
+                                       @bind-Value="loginModel.Password" 
+                                       class="form-input" />
+                            <button type="button" class="password-toggle" @onclick="TogglePassword">
+                                @if (showPassword)
+                                {
+                                    <img src="images/icons/eye.svg" alt="Hide" />
+                                }
+                                else
+                                {
+                                    <img src="images/icons/eye-slash.svg" alt="Show" />
+                                }
+                            </button>
+                        </div>
+                    </div>
+
+                    <!-- Checkbox -->
+                    <div class="form-check">
+                        <div class="form-check">
+                        <label class="checkbox-container">
+                            <InputCheckbox @bind-Value="loginModel.AcceptTerms" @bind-Value:after="OnTermsChanged" />
+                            <span class="checkmark"></span>
+                            <span>I accept the terms and conditions</span>
+                        </label>
+                    </div>
+                    </div>
+
+                    <!-- Error -->
+                    @if (!string.IsNullOrEmpty(errorMessage))
+                    {
+                        <div class="error-message">@errorMessage</div>
+                    }
+
+                    <!-- Login button -->
+                    <button type="submit" class="btn-login" disabled="@isLoading">
+                        @if (isLoading)
+                        {
+                            <span class="spinner"></span>
+                            <span>Logging in...</span>
+                        }
+                        else
+                        {
+                            <span>Log in</span>
+                        }
+                    </button>
+                </EditForm>
+
+                <!-- Debug -->
+                <div class="debug-info">
+                    <small>Debug: admin / admin123</small>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<DevilAvatar IsVisible="@showDevil" OnAnimationComplete="@HideDevil" />
+
+@code {
+    private LoginModel loginModel = new();
+    private string? errorMessage;
+    private bool isLoading;
+    private bool showPassword;
+    private bool showDevil = false;
+
+    private void TogglePassword()
+    {
+        showPassword = !showPassword;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            var httpContext = HttpContextAccessor.HttpContext;
+
+            if (httpContext != null)
+            {
+                loginModel.clientIp = GetClientIpAddress(httpContext);
+
+                //loginModel.clientIp = GetClientIpAddress(httpContext);
+                loginModel.clientMac = httpContext.Request.Cookies["device_mac"] ?? string.Empty;
+
+                // 3. Si no hay MAC en cookie, obtenerla desde la tabla ARP del sistema
+                if (string.IsNullOrEmpty(loginModel.clientMac))
+                {
+                    loginModel.clientMac = await MacAddressResolver.GetMacAddressFromIpAsync(loginModel.clientIp) ?? "Not detected";
+                }
+
+                Console.WriteLine($"🔍 Cliente detectado - IP: {loginModel.clientIp}, MAC: {loginModel.clientMac}");
+            }
+
+        }
+        catch (Exception ex)
+        {
+            Console.WriteLine($"Error obtained from device: {ex.Message}");
+            errorMessage = "Error detecting device. Try again";
+        }
+    }
+
+    private void OnTermsChanged()
+    {
+        // Show little devil when marks checkbox (true)
+        if (loginModel.AcceptTerms)
+        {
+            showDevil = true;
+        }
+    }
+
+    private void HideDevil()
+    {
+        showDevil = false;
+        StateHasChanged();
+    }
+
+    private async Task HandleLogin()
+    {
+        if (string.IsNullOrWhiteSpace(loginModel.Username))
+        {
+            errorMessage = "Username is required";
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(loginModel.Password))
+        {
+            errorMessage = "Password is required";
+            return;
+        }
+
+        if (!loginModel.AcceptTerms)
+        {
+            errorMessage = "You must accept the terms and conditions";
+            return;
+        }
+
+        isLoading = true;
+        errorMessage = null;
+
+        if (string.IsNullOrEmpty(loginModel.clientIp) || loginModel.clientMac == "Not detected")
+        {
+            errorMessage = "Error detecting device. Verify your internet connection.";
+            isLoading = false;
+            return;
+        }
+
+        await Task.Delay(1000);
+
+        LoginRequestDto requestDto = new LoginRequestDto
+        {
+            Username = loginModel.Username,
+            Password = loginModel.Password,
+            IpAddress = loginModel.clientIp,
+            MacAddress = loginModel.clientMac
+        };
+
+        LoginResponseDto response = await authenticationService.AuthenticateAsync(requestDto);
+
+
+        if (response.Success)
+        {
+            Console.WriteLine("Successful login");
+            errorMessage = null;
+            await SessionStorage.SetAsync("IsAuthenticated", true);
+            isLoading = false;
+            Navigation.NavigateTo("/portal/success");
+        }
+        else
+        {
+            errorMessage = response.Message;
+            isLoading = false;
+        }
+    }
+
+    public class LoginModel
+    {
+        public string Username { get; set; } = "";
+        public string Password { get; set; } = "";
+        public string clientIp { get; set; } = string.Empty;
+        public string clientMac { get; set; } = string.Empty;
+        public bool AcceptTerms { get; set; }
+    }
+
+    private string GetClientIpAddress(HttpContext context)
+    {
+        var forwardedFor = context.Request.Headers["X-Forwarded-For"].FirstOrDefault();
+        if (!string.IsNullOrEmpty(forwardedFor))
+        {
+            return forwardedFor.Split(',')[0].Trim();
+        }
+
+        return context.Connection.RemoteIpAddress?.ToString() ?? "unknown";
+    }
+}

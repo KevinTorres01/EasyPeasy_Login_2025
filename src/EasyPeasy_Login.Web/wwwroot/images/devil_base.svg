@@ -1,0 +1,155 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<svg
+   width="150px"
+   height="200px"
+   viewBox="0 0 150 200"
+   version="1.1"
+   id="svg135"
+   sodipodi:docname="diablito_base.svg"
+   inkscape:version="1.2.2 (b0a8486541, 2022-12-01)"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:svg="http://www.w3.org/2000/svg">
+  <defs
+     id="defs139" />
+  <sodipodi:namedview
+     id="namedview137"
+     pagecolor="#ffffff"
+     bordercolor="#cccccc"
+     borderopacity="1"
+     inkscape:showpageshadow="0"
+     inkscape:pageopacity="1"
+     inkscape:pagecheckerboard="0"
+     inkscape:deskcolor="#d1d1d1"
+     showgrid="false"
+     inkscape:zoom="2.4218407"
+     inkscape:cx="42.942543"
+     inkscape:cy="120.36299"
+     inkscape:window-width="960"
+     inkscape:window-height="891"
+     inkscape:window-x="0"
+     inkscape:window-y="64"
+     inkscape:window-maximized="0"
+     inkscape:current-layer="svg135" />
+  <title
+     id="title112">Avatar Base Diablo</title>
+  <g
+     id="g3824">
+    <path
+       style="fill:#000000;fill-opacity:1;stroke-width:1.23808"
+       d="m 87.706782,63.292266 10.397679,20.11743 C 125.92939,70.260826 138.51835,66.310436 137.91524,36.239027 118.35193,59.211966 114.07259,60.916166 87.706782,63.292266 Z"
+       id="path3820"
+       sodipodi:nodetypes="cccc" />
+    <path
+       style="fill:#000000;fill-opacity:1;stroke-width:1.23808"
+       d="M 62.227783,63.292265 51.830104,83.409695 C 24.005167,70.260825 11.416215,66.310435 12.019323,36.239028 31.582629,59.211965 35.861969,60.916165 62.227783,63.292265 Z"
+       id="path3611"
+       sodipodi:nodetypes="cccc" />
+  </g>
+  <g
+     id="g3172"
+     transform="matrix(1.081278,0,0,1,-5.419754,0)">
+    <path
+       d="M 29.344465,200.14964 V 85.149639 a 45,45 0 0 1 89.999995,0 V 200.14964 Z"
+       id="cuerpo"
+       fill="#c44f4f"
+       style="fill:#bb313e;fill-opacity:1;fill-rule:evenodd" />
+    <circle
+       cx="74.344467"
+       cy="85.149635"
+       r="45"
+       id="cabeza"
+       fill="#c44f4f"
+       style="fill:#bb313e;fill-opacity:1;fill-rule:evenodd" />
+  </g>
+  <g
+     id="g3858">
+    <ellipse
+       style="fill:#000000;fill-opacity:1;stroke-width:1.03436"
+       id="path524"
+       cx="74.967285"
+       cy="111.61536"
+       rx="16.336103"
+       ry="19.894257" />
+    <path
+       d="m 77.817891,111.35063 3.809972,10 3.809973,-10 z"
+       id="colmillo-derecho"
+       style="fill:#ffffff;fill-rule:evenodd;stroke-width:1.12694" />
+    <path
+       d="m 64.467588,111.49911 3.809972,10 3.809973,-10 z"
+       id="path3219"
+       style="fill:#ffffff;fill-rule:evenodd;stroke-width:1.12694" />
+    <ellipse
+       style="fill:#bb313e;fill-opacity:1;stroke-width:0.907986"
+       id="path524-7"
+       cx="74.967285"
+       cy="100.69851"
+       rx="17.840643"
+       ry="14.037249" />
+  </g>
+  <g
+     id="g3180"
+     transform="translate(-4.903507)">
+    <circle
+       id="ojo-izquierdo-blanco"
+       fill="#ffffff"
+       cx="63.001976"
+       cy="86.149635"
+       r="15"
+       style="fill-rule:evenodd" />
+    <circle
+       id="pupila-izquierda"
+       fill="#000000"
+       cx="63.001976"
+       cy="86.149635"
+       style="fill-rule:evenodd;stroke-width:1.25"
+       r="10" />
+  </g>
+  <g
+     id="g3184"
+     transform="translate(-1.165882)">
+    <circle
+       id="ojo-derecho-blanco"
+       fill="#ffffff"
+       cx="93.001976"
+       cy="86.149635"
+       r="15"
+       style="fill-rule:evenodd" />
+    <circle
+       id="pupila-derecha"
+       fill="#000000"
+       cx="93.001976"
+       cy="86.149635"
+       style="fill-rule:evenodd;stroke-width:1.25"
+       r="10" />
+  </g>
+  <g
+     id="g3842"
+     transform="translate(-1.0346954)">
+    <path
+       d="m 43.476274,68.182202 27.656891,5.537892"
+       id="ceja-izquierda"
+       stroke="#000000"
+       stroke-width="6"
+       fill="none"
+       stroke-linecap="round"
+       style="fill-rule:evenodd"
+       sodipodi:nodetypes="cc" />
+    <path
+       d="M 108.52768,67.773076 80.87079,73.310968"
+       id="ceja-izquierda-6"
+       stroke="#000000"
+       stroke-width="6"
+       fill="none"
+       stroke-linecap="round"
+       style="fill-rule:evenodd"
+       sodipodi:nodetypes="cc" />
+  </g>
+  <circle
+     id="path3609"
+     style="fill:#bb313e;stroke:#000000"
+     cx="-47.092342"
+     cy="150.43857"
+     r="0.20787056" />
+</svg>

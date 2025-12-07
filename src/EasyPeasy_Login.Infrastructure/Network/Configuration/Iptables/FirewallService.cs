@@ -1,0 +1,194 @@
+using System.Text.RegularExpressions;
+using EasyPeasy_Login.Application.Services.NetworkControl;
+using EasyPeasy_Login.Shared;
+
+namespace EasyPeasy_Login.Infrastructure.Network.Configuration;
+
+public class FirewallService : IFirewallService
+{
+    private readonly ICommandExecutor _executor;
+    private readonly INetworkConfiguration _config;
+    private readonly ILogger _logger;
+
+    // Regex to extract MAC addresses from iptables output
+    private static readonly Regex MacAddressRegex = new(
+        @"MAC\s+([0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2}:[0-9A-Fa-f]{2})",
+        RegexOptions.Compiled | RegexOptions.IgnoreCase);
+
+    public FirewallService(ICommandExecutor executor, INetworkConfiguration config, ILogger logger)
+    {
+        _executor = executor;
+        _config = config;
+        _logger = logger;
+    }
+
+    public async Task<bool> GrantInternetAccessAsync(string macAddress)
+    {
+        if (string.IsNullOrWhiteSpace(macAddress))
+        {
+            _logger.LogWarning("Attempted to grant internet access with empty MAC address");
+            return false;
+        }
+
+        // Normalize MAC address format (lowercase with colons)
+        macAddress = NormalizeMacAddress(macAddress);
+        var iface = _config.Interface;
+
+        try
+        {
+            // Check if already has access to avoid duplicate rules
+            if (await HasInternetAccessAsync(macAddress))
+            {
+                _logger.LogInfo($"MAC {macAddress} already has internet access, skipping");
+                return true;
+            }
+
+            // 1. Add FORWARD rule to allow traffic through
+            var forwardResult = await _executor.ExecuteCommandAsync(
+                IptablesCommands.GrantInternetAccessToMac(macAddress),
+                ignoreErrors: false);
+
+            if (!forwardResult.Success)
+            {
+                _logger.LogError($"❌ Failed to add FORWARD rule for MAC: {macAddress}. Error: {forwardResult.Error}");
+                return false;
+            }
+
+            // 2. Add NAT rules to redirect DNS to external server and bypass HTTP/HTTPS redirection
+            // These rules are inserted at position 1, so they take precedence over redirect rules
+            // DNS: Must use DNAT to external DNS (8.8.8.8) because DHCP tells clients to use gateway as DNS
+            await _executor.ExecuteCommandAsync(
+                IptablesCommands.RedirectDnsToExternalForMac(iface, macAddress),
+                ignoreErrors: true);
+
+            await _executor.ExecuteCommandAsync(
+                IptablesCommands.BypassHttpRedirectForMac(iface, macAddress),
+                ignoreErrors: true);
+
+            await _executor.ExecuteCommandAsync(
+                IptablesCommands.BypassHttpsRedirectForMac(iface, macAddress),
+                ignoreErrors: true);
+
+            _logger.LogInfo($"✅ Internet access GRANTED to MAC: {macAddress} (FORWARD + NAT bypass)");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"❌ Exception granting internet access to MAC {macAddress}: {ex.Message}");
+            return false;
+        }
+    }
+
+    public async Task<bool> RevokeInternetAccessAsync(string macAddress)
+    {
+        if (string.IsNullOrWhiteSpace(macAddress))
+        {
+            _logger.LogWarning("Attempted to revoke internet access with empty MAC address");
+            return false;
+        }
+
+        macAddress = NormalizeMacAddress(macAddress);
+        var iface = _config.Interface;
+
+        try
+        {
+            // 1. Remove NAT rules first (DNS redirect to external + HTTP/HTTPS bypass)
+            await _executor.ExecuteCommandAsync(
+                IptablesCommands.RemoveDnsRedirectForMac(iface, macAddress),
+                ignoreErrors: true);
+
+            await _executor.ExecuteCommandAsync(
+                IptablesCommands.RemoveHttpRedirectBypassForMac(iface, macAddress),
+                ignoreErrors: true);
+
+            await _executor.ExecuteCommandAsync(
+                IptablesCommands.RemoveHttpsRedirectBypassForMac(iface, macAddress),
+                ignoreErrors: true);
+
+            // 2. Remove FORWARD rule
+            // Try to delete multiple times in case there are duplicate rules
+            int maxAttempts = 3;
+            for (int i = 0; i < maxAttempts; i++)
+            {
+                var result = await _executor.ExecuteCommandAsync(
+                    IptablesCommands.RevokeInternetAccessFromMac(macAddress),
+                    ignoreErrors: true);
+                
+                if (!result.Success)
+                    break; // No more rules to delete
+            }
+
+            _logger.LogInfo($"🔒 Internet access REVOKED from MAC: {macAddress}");
+            return true;
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"❌ Exception revoking internet access from MAC {macAddress}: {ex.Message}");
+            return false;
+        }
+    }
+
+    public async Task<bool> HasInternetAccessAsync(string macAddress)
+    {
+        if (string.IsNullOrWhiteSpace(macAddress))
+            return false;
+
+        macAddress = NormalizeMacAddress(macAddress);
+
+        try
+        {
+            var result = await _executor.ExecuteCommandAsync(
+                IptablesCommands.CheckIfMacIsAuthenticated(macAddress),
+                ignoreErrors: true);
+
+            // If grep finds the MAC, output will contain it
+            return result.Output.ToLower().Contains(macAddress.ToLower());
+        }
+        catch
+        {
+            return false;
+        }
+    }
+
+    public async Task<IEnumerable<string>> GetAuthenticatedMacAddressesAsync()
+    {
+        var macAddresses = new List<string>();
+
+        try
+        {
+            var result = await _executor.ExecuteCommandAsync(
+                IptablesCommands.ListAuthenticatedChainRules(),
+                ignoreErrors: true);
+
+            if (result.Success && !string.IsNullOrWhiteSpace(result.Output))
+            {
+                var matches = MacAddressRegex.Matches(result.Output);
+                foreach (Match match in matches)
+                {
+                    if (match.Groups.Count > 1)
+                    {
+                        macAddresses.Add(match.Groups[1].Value.ToLower());
+                    }
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"❌ Exception getting authenticated MAC addresses: {ex.Message}");
+        }
+
+        return macAddresses.Distinct();
+    }
+
+    private static string NormalizeMacAddress(string macAddress)
+    {
+        // Remove any existing separators and convert to lowercase
+        var cleanMac = macAddress.Replace(":", "").Replace("-", "").ToLower();
+        
+        if (cleanMac.Length != 12)
+            return macAddress.ToLower(); // Return as-is if invalid format
+
+        // Insert colons every 2 characters
+        return string.Join(":", Enumerable.Range(0, 6).Select(i => cleanMac.Substring(i * 2, 2)));
+    }
+}

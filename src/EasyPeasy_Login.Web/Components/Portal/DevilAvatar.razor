@@ -1,0 +1,228 @@
+@inject IJSRuntime JS
+
+<div class="devil-avatar @(IsVisible ? "show" : "") @(isAnimating ? "animating" : "")">
+    <svg viewBox="0 0 150 200" xmlns="http://www.w3.org/2000/svg">
+        <title>Avatar Diablito</title>
+        <!-- Horns -->
+        <g id="g3824">
+            <path
+               style="fill:#000000;fill-opacity:1;stroke-width:1.23808"
+               d="m 87.706782,63.292266 10.397679,20.11743 C 125.92939,70.260826 138.51835,66.310436 137.91524,36.239027 118.35193,59.211966 114.07259,60.916166 87.706782,63.292266 Z"
+               id="path3820" />
+            <path
+               style="fill:#000000;fill-opacity:1;stroke-width:1.23808"
+               d="M 62.227783,63.292265 51.830104,83.409695 C 24.005167,70.260825 11.416215,66.310435 12.019323,36.239028 31.582629,59.211965 35.861969,60.916165 62.227783,63.292265 Z"
+               id="path3611" />
+        </g>
+        <!-- Body -->
+        <g id="g3172" transform="matrix(1.081278,0,0,1,-5.419754,0)">
+            <path
+               d="M 29.344465,200.14964 V 85.149639 a 45,45 0 0 1 89.999995,0 V 200.14964 Z"
+               id="cuerpo"
+               fill="#bb313e" />
+            <circle cx="74.344467" cy="85.149635" r="45" id="cabeza" fill="#bb313e" />
+        </g>
+        <!-- Mouth -->
+        <g id="g3858">
+            <ellipse
+               style="fill:#000000;fill-opacity:1;stroke-width:1.03436"
+               id="path524"
+               cx="74.967285"
+               cy="111.61536"
+               rx="16.336103"
+               ry="19.894257" />
+            <path
+               d="m 77.817891,111.35063 3.809972,10 3.809973,-10 z"
+               id="colmillo-derecho"
+               style="fill:#ffffff;stroke-width:1.12694" />
+            <path
+               d="m 64.467588,111.49911 3.809972,10 3.809973,-10 z"
+               id="path3219"
+               style="fill:#ffffff;stroke-width:1.12694" />
+            <ellipse
+               style="fill:#bb313e;fill-opacity:1;stroke-width:0.907986"
+               id="path524-7"
+               cx="74.967285"
+               cy="100.69851"
+               rx="17.840643"
+               ry="14.037249" />
+        </g>
+        <!-- Left eye -->
+        <g id="g3180" transform="translate(-4.903507)">
+            <circle id="ojo-izquierdo-blanco" fill="#ffffff" cx="63.001976" cy="86.149635" r="15" />
+            <circle id="pupila-izquierda" fill="#000000" cx="63.001976" cy="86.149635" r="10" class="pupil"
+                    data-eye-x="63.001976" data-eye-y="86.149635" data-max-distance="4" />
+        </g>
+        <!-- Right eye -->
+        <g id="g3184" transform="translate(-1.165882)">
+            <circle id="ojo-derecho-blanco" fill="#ffffff" cx="93.001976" cy="86.149635" r="15" />
+            <circle id="pupila-derecha" fill="#000000" cx="93.001976" cy="86.149635" r="10" class="pupil"
+                    data-eye-x="93.001976" data-eye-y="86.149635" data-max-distance="4" />
+        </g>
+        <!-- Eyebrows -->
+        <g id="eyebrows-group" transform="translate(-1.0346954)">
+            <path
+               d="m 43.476274,68.182202 27.656891,5.537892"
+               id="ceja-izquierda"
+               stroke="#000000"
+               stroke-width="6"
+               fill="none"
+               stroke-linecap="round"
+               class="eyebrow" />
+            <path
+               d="M 108.52768,67.773076 80.87079,73.310968"
+               id="ceja-derecha"
+               stroke="#000000"
+               stroke-width="6"
+               fill="none"
+               stroke-linecap="round"
+               class="eyebrow" />
+        </g>
+    </svg>
+</div>
+
+<style>
+    .devil-avatar {
+        position: fixed;
+        bottom: -250px;
+        right: -150px;
+        width: 200px;
+        height: 267px;
+        transform: rotate(-25deg);
+        transition: all 0.8s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+        z-index: 1000;
+        pointer-events: none;
+    }
+
+    .devil-avatar.show {
+        bottom: -50px;
+        right: -20px;
+    }
+
+    .devil-avatar svg {
+        width: 100%;
+        height: 100%;
+        filter: drop-shadow(2px 2px 4px rgba(0,0,0,0.3));
+    }
+
+    .devil-avatar .pupil {
+        transition: transform 0.08s ease-out;
+        transform-origin: center;
+        transform-box: fill-box;
+    }
+
+    /* Animación de cejas */
+    .devil-avatar.animating .eyebrow {
+        animation: eyebrowBounce 0.3s ease-in-out 2;
+    }
+
+    @@keyframes eyebrowBounce {
+        0%, 100% {
+            transform: translateY(0);
+        }
+        50% {
+            transform: translateY(-8px);
+        }
+    }
+</style>
+
+@code {
+    [Parameter]
+    public bool IsVisible { get; set; }
+
+    private bool isAnimating = false;
+    private bool previousIsVisible = false;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        // Detect when IsVisible change his value to True
+        if (IsVisible && !previousIsVisible)
+        {
+            await TriggerAnimation();
+        }
+        previousIsVisible = IsVisible;
+    }
+
+    private async Task TriggerAnimation()
+    {
+        // Wait to devil comes into window
+        await Task.Delay(800);
+        
+        // Init eyebrow animation
+        isAnimating = true;
+        StateHasChanged();
+        
+        // Wait for eyebrow animation
+        await Task.Delay(1000);
+        
+        // Stop eyebrow animation
+        isAnimating = false;
+        StateHasChanged();
+        
+        // Wait a moment before disappearing
+        await Task.Delay(100);
+        
+        // Notify to parent that must hide the devil
+        await InvokeAsync(async () =>
+        {
+            // Call to callback if exist
+            if (OnAnimationComplete.HasDelegate)
+            {
+                await OnAnimationComplete.InvokeAsync();
+            }
+        });
+    }
+
+    [Parameter]
+    public EventCallback OnAnimationComplete { get; set; }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            await JS.InvokeVoidAsync("initDevilEyes");
+        }
+    }
+}
+
+<script>
+    window.initDevilEyes = () => {
+        const devil = document.querySelector('.devil-avatar svg');
+        if (!devil) return;
+
+        const pupils = devil.querySelectorAll('.pupil');
+
+        document.addEventListener('mousemove', (e) => {
+            if (!devil.closest('.devil-avatar').classList.contains('show')) return;
+
+            const svgRect = devil.getBoundingClientRect();
+            const mouseX = e.clientX - svgRect.left;
+            const mouseY = e.clientY - svgRect.top;
+            const viewBox = devil.viewBox.baseVal;
+            const scaleX = viewBox.width / svgRect.width;
+            const scaleY = viewBox.height / svgRect.height;
+            const svgMouseX = mouseX * scaleX;
+            const svgMouseY = mouseY * scaleY;
+
+            pupils.forEach(pupil => {
+                const eyeX = parseFloat(pupil.getAttribute('data-eye-x'));
+                const eyeY = parseFloat(pupil.getAttribute('data-eye-y'));
+                const maxDistance = parseFloat(pupil.getAttribute('data-max-distance'));
+                const dx = svgMouseX - eyeX;
+                const dy = svgMouseY - eyeY;
+                const angle = Math.atan2(dy, dx);
+                const distance = Math.sqrt(dx * dx + dy * dy);
+                const moveDistance = distance > 50 ? maxDistance : Math.min(maxDistance, distance / 15);
+                const offsetX = Math.cos(angle) * moveDistance;
+                const offsetY = Math.sin(angle) * moveDistance;
+                pupil.setAttribute('transform', `translate(${offsetX}, ${offsetY})`);
+            });
+        });
+    };
+
+    if (document.readyState === 'loading') {
+        document.addEventListener('DOMContentLoaded', window.initDevilEyes);
+    } else {
+        window.initDevilEyes();
+    }
+</script>

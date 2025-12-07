@@ -1,0 +1,106 @@
+@using EasyPeasy_Login.Shared
+@implements IDisposable
+
+<div class="log-console @(IsExpanded ? "expanded" : "collapsed")">
+    <div class="console-header" @onclick="ToggleExpand">
+        <div class="console-title">
+            <svg class="console-icon" viewBox="0 0 256 256" fill="currentColor">
+                <path d="M224,144v56a16,16,0,0,1-16,16H48a16,16,0,0,1-16-16V144a8,8,0,0,1,16,0v56H208V144a8,8,0,0,1,16,0ZM92.66,73.66,120,46.63V144a8,8,0,0,0,16,0V46.63l27.34,27.33a8,8,0,0,0,11.32-11.32l-40-40a8,8,0,0,0-11.32,0l-40,40A8,8,0,0,0,92.66,73.66Z"/>
+            </svg>
+            <span>Console Output</span>
+            <span class="log-count">(@_logs.Count logs)</span>
+        </div>
+        <div class="console-actions">
+            <button class="btn-console-action" @onclick="ClearLogs" @onclick:stopPropagation="true" title="Clear logs">
+                <svg viewBox="0 0 256 256" fill="currentColor">
+                    <path d="M216,48H176V40a24,24,0,0,0-24-24H104A24,24,0,0,0,80,40v8H40a8,8,0,0,0,0,16h8V208a16,16,0,0,0,16,16H192a16,16,0,0,0,16-16V64h8a8,8,0,0,0,0-16ZM96,40a8,8,0,0,1,8-8h48a8,8,0,0,1,8,8v8H96Zm96,168H64V64H192ZM112,104v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Zm48,0v64a8,8,0,0,1-16,0V104a8,8,0,0,1,16,0Z"/>
+                </svg>
+            </button>
+            <button class="btn-console-action" @onclick="ToggleAutoScroll" @onclick:stopPropagation="true" title="@(_autoScroll ? "Disable auto-scroll" : "Enable auto-scroll")">
+                <svg viewBox="0 0 256 256" fill="currentColor" class="@(_autoScroll ? "active" : "")">
+                    <path d="M205.66,149.66l-72,72a8,8,0,0,1-11.32,0l-72-72a8,8,0,0,1,11.32-11.32L120,196.69V40a8,8,0,0,1,16,0V196.69l58.34-58.35a8,8,0,0,1,11.32,11.32Z"/>
+                </svg>
+            </button>
+            <span class="expand-icon">@(IsExpanded ? "▼" : "▲")</span>
+        </div>
+    </div>
+    
+    @if (IsExpanded)
+    {
+        <div class="console-body" @ref="_consoleBody">
+            @if (_logs.Count == 0)
+            {
+                <div class="console-empty">
+                    <span>No logs yet. Start the network to see activity.</span>
+                </div>
+            }
+            else
+            {
+                @foreach (var log in _logs)
+                {
+                    <div class="log-entry @GetLogClass(log.Level)">
+                        <span class="log-timestamp">[@log.Timestamp.ToString("HH:mm:ss")]</span>
+                        <span class="log-level">[@log.Level.ToString().ToUpper()]</span>
+                        <span class="log-message">@log.Message</span>
+                    </div>
+                }
+            }
+        </div>
+    }
+</div>
+
+@code {
+    [Parameter] public bool IsExpanded { get; set; } = true;
+    [Parameter] public EventCallback<bool> IsExpandedChanged { get; set; }
+    
+    [Inject] private ILogger Logger { get; set; } = default!;
+    
+    private List<LogEntry> _logs = new();
+    private bool _autoScroll = true;
+    private ElementReference _consoleBody;
+    
+    protected override void OnInitialized()
+    {
+        _logs = Logger.GetLogs().ToList();
+        Logger.OnLogAdded += HandleLogAdded;
+    }
+    
+    private void HandleLogAdded(LogEntry entry)
+    {
+        InvokeAsync(() =>
+        {
+            _logs.Add(entry);
+            StateHasChanged();
+        });
+    }
+    
+    private void ToggleExpand()
+    {
+        IsExpanded = !IsExpanded;
+        IsExpandedChanged.InvokeAsync(IsExpanded);
+    }
+    
+    private void ToggleAutoScroll()
+    {
+        _autoScroll = !_autoScroll;
+    }
+    
+    private void ClearLogs()
+    {
+        Logger.ClearLogs();
+        _logs.Clear();
+    }
+    
+    private string GetLogClass(LogLevel level) => level switch
+    {
+        LogLevel.Info => "log-info",
+        LogLevel.Warning => "log-warning",
+        LogLevel.Error => "log-error",
+        _ => ""
+    };
+    
+    public void Dispose()
+    {
+        Logger.OnLogAdded -= HandleLogAdded;
+    }
+}

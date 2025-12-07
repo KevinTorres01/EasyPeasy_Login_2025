@@ -4,6 +4,7 @@
     <ProjectReference Include="..\EasyPeasy_Login.Application\EasyPeasy_Login.Application.csproj" />
     <ProjectReference Include="..\EasyPeasy_Login.Infrastructure\EasyPeasy_Login.Infrastructure.csproj" />
     <ProjectReference Include="..\EasyPeasy_Login.Shared\EasyPeasy_Login.Shared.csproj" />
+    <ProjectReference Include="..\EasyPeasy_Login.Server\EasyPeasy_Login.Server.csproj" />
   </ItemGroup>
 
   <PropertyGroup>

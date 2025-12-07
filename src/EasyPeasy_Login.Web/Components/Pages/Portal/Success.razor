@@ -1,0 +1,55 @@
+@page "/portal/success"
+@rendermode InteractiveServer
+@inject Microsoft.AspNetCore.Components.Server.ProtectedBrowserStorage.ProtectedSessionStorage SessionStorage
+@inject NavigationManager Navigation
+
+<PageTitle>Success!</PageTitle>
+
+@if (isAuthorized)
+{
+    <div class="success-page">
+        <div class="success-card">
+            <h1 class="success-title">Welcome to the internet!</h1>
+            <p class="success-subtitle">EasyPeasy, right?</p>
+            <p class="terms-link">
+                Have you seen the <a href="/portal/terms">terms and conditions</a>?
+            </p>
+        </div>
+    </div>
+}
+else
+{
+    <div class="success-page">
+        <div class="success-card">
+            <p class="success-subtitle">Redirecting...</p>
+        </div>
+    </div>
+}
+
+@code {
+    private bool isAuthorized = false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            try
+            {
+                var result = await SessionStorage.GetAsync<bool>("IsAuthenticated");
+                if (result.Success && result.Value)
+                {
+                    isAuthorized = true;
+                    StateHasChanged();
+                }
+                else
+                {
+                    Navigation.NavigateTo("/portal/login", forceLoad: true);
+                }
+            }
+            catch
+            {
+                Navigation.NavigateTo("/portal/login", forceLoad: true);
+            }
+        }
+    }
+}
