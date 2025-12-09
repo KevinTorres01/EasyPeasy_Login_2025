@@ -3,6 +3,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using EasyPeasy_Login.Shared;
+using EasyPeasy_Login.Shared.Constants;
 
 namespace EasyPeasy_Login.Infrastructure.Network.Configuration
 {
@@ -42,10 +43,10 @@ rsn_pairwise=CCMP
             await executor.ExecuteCommandAsync(HostapdCommands.StopHostapd(), ignoreErrors: true);
             await Task.Delay(1000);
 
-            // Backup existing configuration if present. We'll store backups in the repo's data/backup folder.
+            // Backup existing configuration if present. We'll store backups in the centralized data/backup folder.
             try
             {
-                var backupDir = Path.Combine(Directory.GetCurrentDirectory(), "data", "backup");
+                var backupDir = PersistenceConstants.BackupDirectory;
                 Directory.CreateDirectory(backupDir);
 
                 var systemConfigPath = "/etc/hostapd/hostapd.conf";
@@ -99,10 +100,10 @@ rsn_pairwise=CCMP
             await executor.ExecuteCommandAsync(HostapdCommands.StopHostapd(), ignoreErrors: true);
             await Task.Delay(1000);
 
-            // Attempt to restore the most recent backup from data/backup
+            // Attempt to restore the most recent backup from centralized data/backup
             try
             {
-                var backupDir = Path.Combine(Directory.GetCurrentDirectory(), "data", "backup");
+                var backupDir = PersistenceConstants.BackupDirectory;
                 if (Directory.Exists(backupDir))
                 {
                     // Prefer timestamped backups (hostapd.conf.YYYYMMDDHHMMSS), otherwise use hostapd.conf.latest

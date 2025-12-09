@@ -2,10 +2,11 @@
 using System.Text.Json;
 using EasyPeasy_Login.Domain.Interfaces;
 using EasyPeasy_Login.Application.Services.NetworkControl;
+using EasyPeasy_Login.Shared.Constants;
 
 public class NetworkControlService : INetworkControlService
 {
-    private const string AllowedDevicesFile = "allowed_devices.json";
+    private static readonly string AllowedDevicesFile = PersistenceConstants.AllowedDevicesDataStoragePath;
     private List<Device> _allowedDevices;
     private readonly IDeviceRepository _deviceRepository;
     private readonly ISessionRepository _sessionRepository;
@@ -21,6 +22,14 @@ public class NetworkControlService : INetworkControlService
         _deviceRepository = deviceRepository;
         _sessionRepository = sessionRepository;
         _firewallService = firewallService;
+        
+        // Ensure the data directory exists
+        var dataDir = Path.GetDirectoryName(AllowedDevicesFile);
+        if (!string.IsNullOrEmpty(dataDir) && !Directory.Exists(dataDir))
+        {
+            Directory.CreateDirectory(dataDir);
+        }
+        
         _allowedDevices = LoadAllowedDevices();
     }
 
