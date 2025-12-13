@@ -1,5 +1,7 @@
 using System.Collections.Generic;
 using System.Diagnostics;
+using System.Globalization;
+using System.IO;
 using System.Net;
 using System.Net.Sockets;
 using System.Text;
@@ -36,6 +38,8 @@ public class HttpServer
     private const string GatewayIP = "192.168.100.1";
     private const int ServerPort = 8080;
     private const string PortalUrl = "/portal/login";
+    private const int MaxRequestSizeBytes = 4 * 1024 * 1024; // 4 MB safety cap
+    private static readonly byte[] HeaderDelimiter = Encoding.ASCII.GetBytes("\r\n\r\n");
 
     public HttpServer(
         ISessionManagementService sessionManagementService, 
@@ -92,12 +96,10 @@ public class HttpServer
             client.ReceiveTimeout = 3000;
             client.SendTimeout = 3000;
 
-            var buffer = new byte[2048];
-            int bytesRead = await client.ReceiveAsync(buffer, SocketFlags.None);
-            if (bytesRead == 0) return;
-
-            string rawRequest = Encoding.UTF8.GetString(buffer, 0, bytesRead);
             string clientIP = ((IPEndPoint)client.RemoteEndPoint!).Address.ToString();
+
+            string? rawRequest = await ReadHttpRequestAsync(client);
+            if (string.IsNullOrEmpty(rawRequest)) return;
 
             var request = HttpPetition.Parse(rawRequest, clientIP);
             string response = await ProcessRequestAsync(request);
@@ -110,6 +112,133 @@ public class HttpServer
             try { client.Shutdown(SocketShutdown.Both); } catch { }
             client.Close();
         }
+    }
+
+    /// <summary>
+    /// Reads an HTTP request handling cases where headers and body arrive in separate chunks.
+    /// Supports Content-Length and Transfer-Encoding: chunked bodies with a safety size cap.
+    /// </summary>
+    private async Task<string?> ReadHttpRequestAsync(Socket client)
+    {
+        var buffer = new byte[4096];
+        using var ms = new MemoryStream();
+        int headerEnd = -1;
+
+        while (ms.Length < MaxRequestSizeBytes)
+        {
+            int read = await client.ReceiveAsync(buffer, SocketFlags.None);
+            if (read <= 0) break;
+
+            ms.Write(buffer, 0, read);
+
+            if (headerEnd < 0)
+            {
+                headerEnd = FindHeaderEnd(ms.GetBuffer(), (int)ms.Length);
+                if (headerEnd >= 0) break;
+            }
+        }
+
+        if (headerEnd < 0) return null;
+
+        byte[] rawBytes = ms.ToArray();
+        string headerText = Encoding.UTF8.GetString(rawBytes, 0, headerEnd);
+        bool isChunked = headerText.Contains("transfer-encoding: chunked", StringComparison.OrdinalIgnoreCase);
+        int contentLength = ParseContentLength(headerText);
+
+        int bodyStart = headerEnd + HeaderDelimiter.Length;
+
+        // If Content-Length is specified, keep reading until the full body arrives.
+        while (!isChunked && contentLength > (ms.Length - bodyStart) && ms.Length < MaxRequestSizeBytes)
+        {
+            int read = await client.ReceiveAsync(buffer, SocketFlags.None);
+            if (read <= 0) break;
+            ms.Write(buffer, 0, read);
+        }
+
+        if (!isChunked && contentLength > (ms.Length - bodyStart)) return null;
+
+        rawBytes = ms.ToArray();
+        string rawRequest = Encoding.UTF8.GetString(rawBytes, 0, rawBytes.Length);
+
+        // Handle chunked transfer encoding: keep reading until the terminating 0-length chunk arrives.
+        if (isChunked)
+        {
+            while (!rawRequest.Contains("\r\n0\r\n\r\n", StringComparison.Ordinal) && ms.Length < MaxRequestSizeBytes)
+            {
+                int read = await client.ReceiveAsync(buffer, SocketFlags.None);
+                if (read <= 0) break;
+                ms.Write(buffer, 0, read);
+
+                rawBytes = ms.ToArray();
+                rawRequest = Encoding.UTF8.GetString(rawBytes, 0, rawBytes.Length);
+            }
+
+            if (!rawRequest.Contains("\r\n0\r\n\r\n", StringComparison.Ordinal)) return null;
+
+            int bodyIndex = rawRequest.IndexOf("\r\n\r\n", StringComparison.Ordinal);
+            if (bodyIndex >= 0)
+            {
+                string headerPart = rawRequest[..bodyIndex];
+                string chunkedBody = rawRequest[(bodyIndex + 4)..];
+                string decodedBody = DecodeChunkedBody(chunkedBody);
+                rawRequest = $"{headerPart}\r\n\r\n{decodedBody}";
+            }
+        }
+
+        return rawRequest;
+    }
+
+    private static int FindHeaderEnd(byte[] buffer, int length)
+    {
+        for (int i = 0; i <= length - HeaderDelimiter.Length; i++)
+        {
+            bool match = true;
+            for (int j = 0; j < HeaderDelimiter.Length; j++)
+            {
+                if (buffer[i + j] != HeaderDelimiter[j])
+                {
+                    match = false;
+                    break;
+                }
+            }
+
+            if (match) return i;
+        }
+
+        return -1;
+    }
+
+    private static int ParseContentLength(string headers)
+    {
+        var match = Regex.Match(headers, @"(?im)^content-length:\s*(\d+)");
+        if (match.Success && int.TryParse(match.Groups[1].Value, out int len))
+            return len;
+        return 0;
+    }
+
+    private static string DecodeChunkedBody(string chunkedBody)
+    {
+        var reader = new StringReader(chunkedBody);
+        var sb = new StringBuilder();
+
+        while (true)
+        {
+            string? sizeLine = reader.ReadLine();
+            if (sizeLine == null) break;
+
+            if (!int.TryParse(sizeLine.Trim(), NumberStyles.HexNumber, CultureInfo.InvariantCulture, out int chunkSize))
+                break;
+
+            if (chunkSize == 0) break;
+
+            var chunkBuffer = new char[chunkSize];
+            int read = reader.ReadBlock(chunkBuffer, 0, chunkSize);
+            sb.Append(chunkBuffer, 0, read);
+
+            reader.ReadLine(); // consume trailing CRLF
+        }
+
+        return sb.ToString();
     }
 
     /// <summary>
