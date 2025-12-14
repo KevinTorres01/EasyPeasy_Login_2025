@@ -22,6 +22,7 @@ public class ApiRouter
     private readonly IDeviceManagement _deviceManagement;
     private readonly INetworkOrchestrator _networkOrchestrator;
     private readonly INetworkConfiguration _networkConfiguration;
+    private readonly IMacAddressResolver _macAddressResolver;
     private readonly ILogger _logger;
 
     public ApiRouter(
@@ -31,6 +32,7 @@ public class ApiRouter
         IDeviceManagement deviceManagement,
         INetworkOrchestrator networkOrchestrator,
         INetworkConfiguration networkConfiguration,
+        IMacAddressResolver macAddressResolver,
         ILogger logger)
     {
         _sessionManagementService = sessionManagementService;
@@ -39,6 +41,7 @@ public class ApiRouter
         _deviceManagement = deviceManagement;
         _networkOrchestrator = networkOrchestrator;
         _networkConfiguration = networkConfiguration;
+        _macAddressResolver = macAddressResolver;
         _logger = logger;
     }
 
@@ -193,6 +196,40 @@ public class ApiRouter
                     success = true,
                     message = "Network stopped",
                     logs
+                });
+            }
+
+            // Client Logout API - allows a client to terminate their own session
+            // Uses the client's IP to find their MAC and session
+            if (path == "/api/logout" && method == "POST")
+            {
+                _logger.LogInfo($"Logout requested from IP: {request.ClientIP}");
+                
+                // Get MAC address from client IP
+                string? clientMac = await _macAddressResolver.GetMacAddressFromIpAsync(request.ClientIP);
+                if (string.IsNullOrEmpty(clientMac))
+                {
+                    return ApiResponseBuilder.HttpError(400, "Could not determine device MAC address");
+                }
+
+                // Find session by MAC
+                var session = await _sessionManagementService.GetSessionByMacAsync(clientMac);
+                if (session == null)
+                {
+                    return ApiResponseBuilder.HttpError(404, "No active session found for this device");
+                }
+
+                // Invalidate session (this will also revoke internet access via iptables with force disconnect)
+                await _sessionManagementService.InvalidateSession(session);
+                
+                _logger.LogInfo($"✅ Logout completed for MAC: {clientMac}, User: {session.Username}");
+                
+                return ApiResponseBuilder.HttpJson(new
+                {
+                    success = true,
+                    message = "Logged out successfully. Your internet access has been revoked.",
+                    mac = clientMac,
+                    username = session.Username
                 });
             }
 

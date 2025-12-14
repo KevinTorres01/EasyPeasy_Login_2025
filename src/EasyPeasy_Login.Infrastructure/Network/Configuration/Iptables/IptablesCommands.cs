@@ -205,4 +205,33 @@ public static class IptablesCommands
     {
         return $"iptables -t nat -D PREROUTING -i {_interface} -m mac --mac-source {macAddress} -p tcp --dport 443 -j ACCEPT";
     }
+
+    // FORCE DISCONNECT - IMMEDIATE CONNECTION TERMINATION (may took a few minutes)
+    // These rules override ESTABLISHED,RELATED to force-kill active connections
+
+    /// Inserts a DROP rule at the very beginning of FORWARD chain for a specific MAC.
+    /// This takes precedence over the ESTABLISHED,RELATED rule, immediately killing
+    /// ALL traffic from this device including active connections.
+    public static string ForceDropAllTrafficFromMac(string _interface, string macAddress)
+    {
+        return $"iptables -I FORWARD 1 -i {_interface} -m mac --mac-source {macAddress} -j DROP";
+    }
+
+    /// Removes the force DROP rule after the device has been disconnected.
+    /// This is called after a short delay to clean up the temporary blocking rule.
+    public static string RemoveForceDropFromMac(string _interface, string macAddress)
+    {
+        return $"iptables -D FORWARD -i {_interface} -m mac --mac-source {macAddress} -j DROP";
+    }
+
+    /// Flushes connection tracking entries for a specific MAC address.
+    /// This forces the kernel to forget about established connections,
+    /// ensuring they cannot continue even if the MAC spoofs or reconnects quickly.
+    /// Requires the conntrack utility to be installed.
+    public static string FlushConnectionTrackingForMac(string macAddress)
+    {
+        // Note: conntrack doesn't filter by MAC directly, but we can delete all entries
+        // This is a more aggressive approach - use with caution
+        return $"conntrack -D -s 0.0.0.0/0 2>/dev/null || true";
+    }
 }

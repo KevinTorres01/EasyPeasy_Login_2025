@@ -30,6 +30,7 @@ public class HttpServer
     private readonly IUserManagementService _userManagementService;
     private readonly IDeviceManagement _deviceManagement;
     private readonly INetworkConfiguration _networkConfiguration;
+    private readonly IMacAddressResolver _macAddressResolver;
     private readonly ILogger _logger;
     private readonly ApiRouter _apiRouter;
     private Socket? _listener;
@@ -48,6 +49,7 @@ public class HttpServer
         IDeviceManagement deviceManagement,
         INetworkOrchestrator networkOrchestrator,
         INetworkConfiguration networkConfiguration,
+        IMacAddressResolver macAddressResolver,
         ILogger logger)
     {
         _sessionManagementService = sessionManagementService;
@@ -55,8 +57,9 @@ public class HttpServer
         _userManagementService = userManagementService;
         _deviceManagement = deviceManagement;
         _networkConfiguration = networkConfiguration;
+        _macAddressResolver = macAddressResolver;
         _logger = logger;
-        _apiRouter = new ApiRouter(sessionManagementService, authenticationService, userManagementService, deviceManagement, networkOrchestrator, networkConfiguration, logger);
+        _apiRouter = new ApiRouter(sessionManagementService, authenticationService, userManagementService, deviceManagement, networkOrchestrator, networkConfiguration, macAddressResolver, logger);
     }
 
     public void Start()
