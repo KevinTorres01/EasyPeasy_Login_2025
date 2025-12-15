@@ -1,0 +1,20 @@
+[
+  {
+    "$type": "Session",
+    "DeviceMacAddress": "90:61:ae:72:6a:d7",
+    "Username": "admin",
+    "IpAddress": "192.168.100.60"
+  },
+  {
+    "$type": "Session",
+    "DeviceMacAddress": "06:65:60:52:92:a9",
+    "Username": "admin",
+    "IpAddress": "192.168.100.115"
+  },
+  {
+    "$type": "Session",
+    "DeviceMacAddress": "44:87:63:6e:0a:9a",
+    "Username": "admin",
+    "IpAddress": "192.168.100.90"
+  }
+]

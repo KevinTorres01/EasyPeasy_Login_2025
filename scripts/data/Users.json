@@ -1,0 +1,9 @@
+[
+  {
+    "$type": "User",
+    "Username": "admin",
+    "Name": "Administrator",
+    "HashedPassword": "$2a$11$OlHPfN0V9EcZwDZ2NhvzaOT0E6F8/EfWo2wHzJhSFEVEwd7fqBkCa",
+    "IsActive": true
+  }
+]

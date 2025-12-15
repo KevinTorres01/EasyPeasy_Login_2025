@@ -81,6 +81,13 @@ public class FirewallService : IFirewallService
 
     public async Task<bool> RevokeInternetAccessAsync(string macAddress)
     {
+        return await RevokeInternetAccessAsync(macAddress, forceDisconnect: true);
+    }
+
+    /// Revokes internet access from a device by its MAC address.
+    /// When forceDisconnect is true, it immediately terminates ALL connections
+    public async Task<bool> RevokeInternetAccessAsync(string macAddress, bool forceDisconnect)
+    {
         if (string.IsNullOrWhiteSpace(macAddress))
         {
             _logger.LogWarning("Attempted to revoke internet access with empty MAC address");
@@ -92,7 +99,20 @@ public class FirewallService : IFirewallService
 
         try
         {
-            // 1. Remove NAT rules first (DNS redirect to external + HTTP/HTTPS bypass)
+            // STEP 1: FORCE DISCONNECT - Insert DROP rule at position 1 to kill ALL traffic immediately
+            // This takes precedence over ESTABLISHED,RELATED rule
+            if (forceDisconnect)
+            {
+                _logger.LogInfo($"⚡ FORCE DISCONNECT: Immediately blocking all traffic from MAC: {macAddress}");
+                await _executor.ExecuteCommandAsync(
+                    IptablesCommands.ForceDropAllTrafficFromMac(iface, macAddress),
+                    ignoreErrors: true);
+                
+                // Small delay to ensure active connections are terminated
+                await Task.Delay(500);
+            }
+
+            // STEP 2: Remove NAT rules (DNS redirect to external + HTTP/HTTPS bypass)
             await _executor.ExecuteCommandAsync(
                 IptablesCommands.RemoveDnsRedirectForMac(iface, macAddress),
                 ignoreErrors: true);
@@ -105,7 +125,7 @@ public class FirewallService : IFirewallService
                 IptablesCommands.RemoveHttpsRedirectBypassForMac(iface, macAddress),
                 ignoreErrors: true);
 
-            // 2. Remove FORWARD rule
+            // STEP 3: Remove from AUTHENTICATED chain
             // Try to delete multiple times in case there are duplicate rules
             int maxAttempts = 3;
             for (int i = 0; i < maxAttempts; i++)
@@ -118,7 +138,24 @@ public class FirewallService : IFirewallService
                     break; // No more rules to delete
             }
 
-            _logger.LogInfo($"🔒 Internet access REVOKED from MAC: {macAddress}");
+            // STEP 4: Clean up - Remove the force DROP rule after a delay
+            // The device is now fully blocked by the absence of AUTHENTICATED rule
+            if (forceDisconnect)
+            {
+                // Wait a bit more to ensure connections are fully terminated
+                await Task.Delay(1500);
+                
+                await _executor.ExecuteCommandAsync(
+                    IptablesCommands.RemoveForceDropFromMac(iface, macAddress),
+                    ignoreErrors: true);
+                
+                _logger.LogInfo($"🔒 Internet access REVOKED from MAC: {macAddress} (FORCE DISCONNECT completed)");
+            }
+            else
+            {
+                _logger.LogInfo($"🔒 Internet access REVOKED from MAC: {macAddress}");
+            }
+            
             return true;
         }
         catch (Exception ex)
