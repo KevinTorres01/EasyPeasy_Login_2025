@@ -224,14 +224,13 @@ public static class IptablesCommands
         return $"iptables -D FORWARD -i {_interface} -m mac --mac-source {macAddress} -j DROP";
     }
 
-    /// Flushes connection tracking entries for a specific MAC address.
+    /// Flushes connection tracking entries for a specific IP address.
     /// This forces the kernel to forget about established connections,
-    /// ensuring they cannot continue even if the MAC spoofs or reconnects quickly.
+    /// ensuring immediate disconnection when combined with firewall rules.
     /// Requires the conntrack utility to be installed.
-    public static string FlushConnectionTrackingForMac(string macAddress)
+    public static string FlushConnectionTrackingForIp(string ipAddress)
     {
-        // Note: conntrack doesn't filter by MAC directly, but we can delete all entries
-        // This is a more aggressive approach - use with caution
-        return $"conntrack -D -s 0.0.0.0/0 2>/dev/null || true";
+        // Delete connections where this IP is the source OR destination
+        return $"conntrack -D -s {ipAddress} 2>/dev/null; conntrack -D -d {ipAddress} 2>/dev/null; true";
     }
 }

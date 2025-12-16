@@ -8,7 +8,8 @@ public interface IFirewallService
 
     /// Revokes internet access from a device by its MAC address.
     /// Removes the ACCEPT rule from the AUTHENTICATED iptables chain.
-    Task<bool> RevokeInternetAccessAsync(string macAddress);
+    /// If clientIp is provided, also flushes connection tracking for immediate disconnection.
+    Task<bool> RevokeInternetAccessAsync(string macAddress, string? clientIp = null);
 
     Task<bool> HasInternetAccessAsync(string macAddress);
 

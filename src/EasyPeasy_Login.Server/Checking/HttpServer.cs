@@ -316,9 +316,29 @@ public class HttpServer
         if (path == "/portal/login" && request.Method == "POST")
             return await HandleLoginAsync(request);
 
-        if (path == "/portal/terms")
+        if (path == "/portal/terms" || path.StartsWith("/portal/terms?"))
         {
-            return ApiResponseBuilder.HttpHtml(TermsPage.GenerateTermsPage());
+            // Check for 'back' query parameter to know where to return
+            string backUrl = "/portal/login";
+            
+            // Parse query string from path manually
+            int queryIndex = request.Path.IndexOf('?');
+            if (queryIndex >= 0)
+            {
+                string queryString = request.Path.Substring(queryIndex + 1);
+                // Parse key=value pairs
+                foreach (var param in queryString.Split('&'))
+                {
+                    var parts = param.Split('=');
+                    if (parts.Length == 2 && parts[0] == "back")
+                    {
+                        backUrl = Uri.UnescapeDataString(parts[1]);
+                        break;
+                    }
+                }
+            }
+            
+            return ApiResponseBuilder.HttpHtml(TermsPage.GenerateTermsPage(spanish: false, backUrl: backUrl));
         }
 
         if (path.StartsWith("/portal") || path == "/")
