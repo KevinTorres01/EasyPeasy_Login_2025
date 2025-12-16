@@ -102,6 +102,8 @@ namespace EasyPeasy_Login.Server.HtmlPages
             html.AppendLine("        .checkbox-container input:checked ~ .checkmark { background-color: #000; border-color: #000; }");
             html.AppendLine("        .checkmark:after { content: ''; position: absolute; display: none; left: 5px; top: 2px; width: 4px; height: 8px; border: solid white; border-width: 0 2px 2px 0; transform: rotate(45deg); }");
             html.AppendLine("        .checkbox-container input:checked ~ .checkmark:after { display: block; }");
+            html.AppendLine("        .terms-link { color: #000; text-decoration: underline; font-weight: 600; transition: color 0.2s; }");
+            html.AppendLine("        .terms-link:hover { color: #4b5563; }");
             html.AppendLine("");
             html.AppendLine("        /* error message */");
             html.AppendLine("        .error-message { background: #fef2f2; color: #991b1b; border: 1px solid #fecaca; border-radius: 8px; padding: 12px 16px; margin-bottom: 16px; font-size: 14px; animation: shake 0.5s; }");
@@ -186,7 +188,7 @@ namespace EasyPeasy_Login.Server.HtmlPages
             html.AppendLine("                            <label class='checkbox-container'>");
             html.AppendLine($"                                <input type='checkbox' name='acceptTerms' {(acceptTerms ? "checked" : "")} required />");
             html.AppendLine("                                <span class='checkmark'></span>");
-            html.AppendLine("                                <span>I accept the terms and conditions</span>");
+            html.AppendLine("                                <span>I accept the <a href='/portal/terms?back=/portal/login' class='terms-link'>terms and conditions</a></span>");
             html.AppendLine("                            </label>");
             html.AppendLine("                        </div>");
             

@@ -85,8 +85,18 @@ namespace EasyPeasy_Login.Server.HtmlPages
                 ? "Términos y Condiciones de Servicio (TOS) - EasyPeasy Login"
                 : "Terms of Service (TOS) - EasyPeasy Login";
             string btnTranslate = spanish ? "EN" : "ES";
-            string backText = spanish ? "Volver a Bienvenida" : "Back to Welcome";
             string backUrlFinal = backUrl ?? "/portal/success";
+            
+            // Dynamic back button text based on destination
+            string backText;
+            if (backUrlFinal.Contains("login"))
+            {
+                backText = spanish ? "Volver al Login" : "Back to Login";
+            }
+            else
+            {
+                backText = spanish ? "Volver a Bienvenida" : "Back to Welcome";
+            }
 
             sb.Append($@"<!DOCTYPE html>
 <html lang='{lang}'>
