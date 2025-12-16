@@ -79,14 +79,15 @@ public class FirewallService : IFirewallService
         }
     }
 
-    public async Task<bool> RevokeInternetAccessAsync(string macAddress)
+    public async Task<bool> RevokeInternetAccessAsync(string macAddress, string? clientIp = null)
     {
-        return await RevokeInternetAccessAsync(macAddress, forceDisconnect: true);
+        return await RevokeInternetAccessAsync(macAddress, clientIp, forceDisconnect: true);
     }
 
     /// Revokes internet access from a device by its MAC address.
     /// When forceDisconnect is true, it immediately terminates ALL connections
-    public async Task<bool> RevokeInternetAccessAsync(string macAddress, bool forceDisconnect)
+    /// If clientIp is provided, flushes connection tracking for immediate disconnection
+    public async Task<bool> RevokeInternetAccessAsync(string macAddress, string? clientIp, bool forceDisconnect)
     {
         if (string.IsNullOrWhiteSpace(macAddress))
         {
@@ -104,12 +105,38 @@ public class FirewallService : IFirewallService
             if (forceDisconnect)
             {
                 _logger.LogInfo($"⚡ FORCE DISCONNECT: Immediately blocking all traffic from MAC: {macAddress}");
-                await _executor.ExecuteCommandAsync(
+                _logger.LogInfo($"   Command: iptables -I FORWARD 1 -i {iface} -m mac --mac-source {macAddress} -j DROP");
+                
+                var dropResult = await _executor.ExecuteCommandAsync(
                     IptablesCommands.ForceDropAllTrafficFromMac(iface, macAddress),
-                    ignoreErrors: true);
+                    ignoreErrors: false);
+                
+                if (!dropResult.Success)
+                {
+                    _logger.LogError($"❌ FORCE DROP FAILED for MAC {macAddress}");
+                    _logger.LogError($"   Exit Code: {dropResult.ExitCode}");
+                    _logger.LogError($"   Error Output: {dropResult.Error}");
+                    _logger.LogError($"   Standard Output: {dropResult.Output}");
+                    return false;
+                }
+                else
+                {
+                    _logger.LogInfo($"✅ FORCE DROP rule inserted successfully at position 1");
+                }
+                
+                // STEP 1.5: Flush connection tracking to immediately kill established connections
+                // This forces the kernel to "forget" active TCP sessions
+                if (!string.IsNullOrWhiteSpace(clientIp))
+                {
+                    _logger.LogInfo($"🔄 Flushing connection tracking for IP: {clientIp}");
+                    await _executor.ExecuteCommandAsync(
+                        IptablesCommands.FlushConnectionTrackingForIp(clientIp),
+                        ignoreErrors: true);
+                    _logger.LogInfo($"✅ Connection tracking flushed for IP: {clientIp}");
+                }
                 
                 // Small delay to ensure active connections are terminated
-                await Task.Delay(500);
+                await Task.Delay(100); // Reduced delay since conntrack flush handles this now
             }
 
             // STEP 2: Remove NAT rules (DNS redirect to external + HTTP/HTTPS bypass)
@@ -142,8 +169,8 @@ public class FirewallService : IFirewallService
             // The device is now fully blocked by the absence of AUTHENTICATED rule
             if (forceDisconnect)
             {
-                // Wait a bit more to ensure connections are fully terminated
-                await Task.Delay(1500);
+                // Short delay - conntrack flush already handled immediate disconnection
+                await Task.Delay(200);
                 
                 await _executor.ExecuteCommandAsync(
                     IptablesCommands.RemoveForceDropFromMac(iface, macAddress),

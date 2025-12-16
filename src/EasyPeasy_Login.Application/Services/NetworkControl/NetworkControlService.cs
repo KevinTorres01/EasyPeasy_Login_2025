@@ -75,8 +75,8 @@ public class NetworkControlService : INetworkControlService
         var device = await _deviceRepository.GetByMacAddressAsync(macAddress);
         if (device != null)
         {
-            // Revoke internet access via iptables
-            await _firewallService.RevokeInternetAccessAsync(macAddress);
+            // Revoke internet access via iptables, passing IP for conntrack flush
+            await _firewallService.RevokeInternetAccessAsync(macAddress, device.IPAddress);
 
             await _deviceRepository.UpdateAsync(device);
 
