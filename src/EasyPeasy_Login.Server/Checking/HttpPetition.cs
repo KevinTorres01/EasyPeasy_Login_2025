@@ -28,11 +28,14 @@ public class HttpPetition
     /// User-Agent header - CRITICAL for captive portal detection.
     /// Operating systems send specific User-Agents when checking for captive portals:
     /// - iOS/macOS: "CaptiveNetworkSupport"
-    /// - Android: "Dalvik" or "okhttp"  
+    /// - Android: "Dalvik" or "okhttp"
     /// - Windows: "Microsoft NCSI"
     /// We must detect these to respond appropriately and trigger the login popup.
     /// </summary>
     public string UserAgent { get; set; } = "";
+
+    /// <summary>Content-Type header (e.g. "application/x-www-form-urlencoded", "application/json", "multipart/form-data; boundary=...").</summary>
+    public string ContentType { get; set; } = "";
 
     /// <summary>
     /// Parses a raw HTTP request string into an HttpPetition object.
@@ -45,13 +48,14 @@ public class HttpPetition
         var petition = new HttpPetition { ClientIP = clientIP };
         var lines = rawRequest.Split("\r\n");
 
-        // Parse the request line (e.g., "GET /path HTTP/1.1")
+        // Parse the request line (e.g., "GET /path HTTP/1.1"). Normalize method to uppercase
+        // so downstream comparisons don't need to repeat the normalization.
         if (lines.Length > 0)
         {
             var firstLine = lines[0].Split(' ');
             if (firstLine.Length >= 2)
             {
-                petition.Method = firstLine[0];
+                petition.Method = firstLine[0].ToUpperInvariant();
                 petition.Path = firstLine[1];
             }
         }
@@ -66,6 +70,10 @@ public class HttpPetition
             else if (line.StartsWith("User-Agent:", StringComparison.OrdinalIgnoreCase))
             {
                 petition.UserAgent = line.Substring(11).Trim();
+            }
+            else if (line.StartsWith("Content-Type:", StringComparison.OrdinalIgnoreCase))
+            {
+                petition.ContentType = line.Substring(13).Trim();
             }
         }
 

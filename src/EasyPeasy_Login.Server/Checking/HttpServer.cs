@@ -40,7 +40,14 @@ public class HttpServer
     private const int ServerPort = 8080;
     private const string PortalUrl = "/portal/login";
     private const int MaxRequestSizeBytes = 4 * 1024 * 1024; // 4 MB safety cap
+    // Per-request timeout. ReceiveTimeout/SendTimeout on Socket only apply to the
+    // synchronous Receive/Send calls, so we enforce timeouts via CancellationToken.
+    private const int RequestTimeoutSeconds = 10;
     private static readonly byte[] HeaderDelimiter = Encoding.ASCII.GetBytes("\r\n\r\n");
+
+    // Sentinel returned by ReadHttpRequestAsync when the request exceeds MaxRequestSizeBytes,
+    // so the caller can respond with 413 instead of silently dropping the connection.
+    private const string RequestTooLargeMarker = "__REQUEST_TOO_LARGE__";
 
     public HttpServer(
         ISessionManagementService sessionManagementService, 
@@ -88,28 +95,45 @@ public class HttpServer
                 var client = await _listener.AcceptAsync();
                 _ = HandleClientAsync(client);
             }
-            catch { if (!_isRunning) break; }
+            catch (Exception ex)
+            {
+                if (!_isRunning) break;
+                // Avoid a tight CPU loop if AcceptAsync keeps failing for a reason other than shutdown.
+                _logger.LogError($"Accept failed: {ex.Message}");
+                await Task.Delay(100);
+            }
         }
     }
 
     private async Task HandleClientAsync(Socket client)
     {
+        using var cts = new CancellationTokenSource(TimeSpan.FromSeconds(RequestTimeoutSeconds));
         try
         {
-            client.ReceiveTimeout = 3000;
-            client.SendTimeout = 3000;
-
             string clientIP = ((IPEndPoint)client.RemoteEndPoint!).Address.ToString();
 
-            string? rawRequest = await ReadHttpRequestAsync(client);
+            string? rawRequest = await ReadHttpRequestAsync(client, cts.Token);
             if (string.IsNullOrEmpty(rawRequest)) return;
+
+            if (rawRequest == RequestTooLargeMarker)
+            {
+                await SendAllAsync(client, Encoding.UTF8.GetBytes(ApiResponseBuilder.HttpError(413, "Request body too large")), cts.Token);
+                return;
+            }
 
             var request = HttpPetition.Parse(rawRequest, clientIP);
             string response = await ProcessRequestAsync(request);
 
-            await client.SendAsync(Encoding.UTF8.GetBytes(response), SocketFlags.None);
+            await SendAllAsync(client, Encoding.UTF8.GetBytes(response), cts.Token);
         }
-        catch { }
+        catch (OperationCanceledException)
+        {
+            // Client was too slow; drop the connection silently.
+        }
+        catch (Exception ex)
+        {
+            _logger.LogError($"Request handler error: {ex.Message}");
+        }
         finally
         {
             try { client.Shutdown(SocketShutdown.Both); } catch { }
@@ -118,10 +142,28 @@ public class HttpServer
     }
 
     /// <summary>
+    /// Sends the full buffer to the client. Socket.SendAsync may write fewer bytes than
+    /// requested when the kernel send buffer is full, especially for large HTML responses,
+    /// so we loop until everything is written or the operation is cancelled.
+    /// </summary>
+    private static async Task SendAllAsync(Socket client, byte[] data, CancellationToken cancellationToken)
+    {
+        int offset = 0;
+        while (offset < data.Length)
+        {
+            int sent = await client.SendAsync(data.AsMemory(offset, data.Length - offset), SocketFlags.None, cancellationToken);
+            if (sent <= 0) break;
+            offset += sent;
+        }
+    }
+
+    /// <summary>
     /// Reads an HTTP request handling cases where headers and body arrive in separate chunks.
     /// Supports Content-Length and Transfer-Encoding: chunked bodies with a safety size cap.
+    /// Returns <see cref="RequestTooLargeMarker"/> when the request exceeds the size cap so
+    /// the caller can answer with 413 instead of silently dropping the connection.
     /// </summary>
-    private async Task<string?> ReadHttpRequestAsync(Socket client)
+    private async Task<string?> ReadHttpRequestAsync(Socket client, CancellationToken cancellationToken)
     {
         var buffer = new byte[4096];
         using var ms = new MemoryStream();
@@ -129,7 +171,7 @@ public class HttpServer
 
         while (ms.Length < MaxRequestSizeBytes)
         {
-            int read = await client.ReceiveAsync(buffer, SocketFlags.None);
+            int read = await client.ReceiveAsync(buffer.AsMemory(), SocketFlags.None, cancellationToken);
             if (read <= 0) break;
 
             ms.Write(buffer, 0, read);
@@ -141,6 +183,7 @@ public class HttpServer
             }
         }
 
+        if (ms.Length >= MaxRequestSizeBytes && headerEnd < 0) return RequestTooLargeMarker;
         if (headerEnd < 0) return null;
 
         byte[] rawBytes = ms.ToArray();
@@ -153,12 +196,15 @@ public class HttpServer
         // If Content-Length is specified, keep reading until the full body arrives.
         while (!isChunked && contentLength > (ms.Length - bodyStart) && ms.Length < MaxRequestSizeBytes)
         {
-            int read = await client.ReceiveAsync(buffer, SocketFlags.None);
+            int read = await client.ReceiveAsync(buffer.AsMemory(), SocketFlags.None, cancellationToken);
             if (read <= 0) break;
             ms.Write(buffer, 0, read);
         }
 
-        if (!isChunked && contentLength > (ms.Length - bodyStart)) return null;
+        if (!isChunked && contentLength > (ms.Length - bodyStart))
+        {
+            return ms.Length >= MaxRequestSizeBytes ? RequestTooLargeMarker : null;
+        }
 
         rawBytes = ms.ToArray();
         string rawRequest = Encoding.UTF8.GetString(rawBytes, 0, rawBytes.Length);
@@ -168,7 +214,7 @@ public class HttpServer
         {
             while (!rawRequest.Contains("\r\n0\r\n\r\n", StringComparison.Ordinal) && ms.Length < MaxRequestSizeBytes)
             {
-                int read = await client.ReceiveAsync(buffer, SocketFlags.None);
+                int read = await client.ReceiveAsync(buffer.AsMemory(), SocketFlags.None, cancellationToken);
                 if (read <= 0) break;
                 ms.Write(buffer, 0, read);
 
@@ -176,7 +222,10 @@ public class HttpServer
                 rawRequest = Encoding.UTF8.GetString(rawBytes, 0, rawBytes.Length);
             }
 
-            if (!rawRequest.Contains("\r\n0\r\n\r\n", StringComparison.Ordinal)) return null;
+            if (!rawRequest.Contains("\r\n0\r\n\r\n", StringComparison.Ordinal))
+            {
+                return ms.Length >= MaxRequestSizeBytes ? RequestTooLargeMarker : null;
+            }
 
             int bodyIndex = rawRequest.IndexOf("\r\n\r\n", StringComparison.Ordinal);
             if (bodyIndex >= 0)
@@ -257,10 +306,23 @@ public class HttpServer
     {
         string path = request.Path.ToLower();
 
+        // Strip query string for path-only matching (Method is already normalized in HttpPetition.Parse).
+        int q = path.IndexOf('?');
+        string pathNoQuery = q >= 0 ? path[..q] : path;
+
         // Handle CORS preflight requests
-        if (request.Method.ToUpper() == "OPTIONS")
+        if (request.Method == "OPTIONS")
         {
             return ApiResponseBuilder.HttpOptions();
+        }
+
+        // Favicon and robots — browsers request these eagerly. Without an explicit
+        // handler they fall through to the portal handler and we end up shipping the
+        // full login HTML as a favicon, which wastes bandwidth and confuses some
+        // captive-portal popups.
+        if (pathNoQuery is "/favicon.ico" or "/robots.txt")
+        {
+            return ApiResponseBuilder.Http204();
         }
 
         // 1. Connectivity check (OS trying to detect captive portal)
@@ -401,6 +463,17 @@ public class HttpServer
     {
         try
         {
+            // The login form is always application/x-www-form-urlencoded. If a client
+            // sends something else (e.g. multipart/form-data from a custom integration),
+            // fail loudly instead of silently parsing garbage and producing a confusing
+            // "invalid credentials" error.
+            if (!string.IsNullOrEmpty(request.ContentType) &&
+                !request.ContentType.Contains("application/x-www-form-urlencoded", StringComparison.OrdinalIgnoreCase))
+            {
+                _logger.LogError($"Unsupported login Content-Type: {request.ContentType}");
+                return ApiResponseBuilder.HttpError(415, "Login form must be application/x-www-form-urlencoded");
+            }
+
             // Parse form data from body
             var formData = ParseFormData(request.Body);
             
@@ -464,7 +537,7 @@ public class HttpServer
     {
         try
         {
-            var p = new Process
+            using var p = new Process
             {
                 StartInfo = new()
                 {
@@ -482,7 +555,11 @@ public class HttpServer
             var match = Regex.Match(output, @"([0-9A-Fa-f]{2}[:-]){5}[0-9A-Fa-f]{2}");
             return match.Success ? match.Value.ToLower() : null;
         }
-        catch { return null; }
+        catch (Exception ex)
+        {
+            _logger.LogError($"GetMacAddressAsync failed for {ip}: {ex.Message}");
+            return null;
+        }
     }
 
     #region Admin Page Generators
